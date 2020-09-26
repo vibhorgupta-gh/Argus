@@ -1,0 +1,25 @@
+{
+  "name": "Argus",
+  "version": "0.1.0",
+  "description": "Automate container quit and rerun as the base image updates",
+  "main": "index.js",
+  "repository": "https://github.com/VibhorCodecianGupta/Argus.git",
+  "author": "VibhorCodecianGupta <vibhordelgupta@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.ts"
+  },
+  "dependencies": {
+    "@types/dockerode": "^2.5.34",
+    "dockerode": "^3.2.1"
+  },
+  "devDependencies": {
+    "@tsconfig/node12": "^1.0.7",
+    "@types/node": "^14.11.2",
+    "nodemon": "^2.0.4",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.3"
+  }
+}
