@@ -1,47 +1,51 @@
-import Docker from 'dockerode';
+import Docker, { Container as ContainerInterface, ContainerCreateOptions, HostConfig } from 'dockerode';
 
 let DockerClient = new Docker();
 
 
 export class Container {
 
-  name: string;
-  image: string;
-  command: any;
-  hostConfig: object;
-  labels: any;
-  entrypoint: string;
+  name: string | undefined;
+  image: string | undefined;
+  command: string[] | undefined;
+  hostConfig: HostConfig | undefined;
+  labels: { [label: string]: string } | undefined;
+  entrypoint: string | string [] | undefined;
   environment: any;
 
-  constructor (options: object) {
-    let opts:any = options;
+
+  constructor (opts: ContainerCreateOptions) {
 
     this.name = opts.name;
-    this.image = opts.image;
-    this.command = opts.command;
-    this.hostConfig = opts.hostConfig;
-    this.labels = opts.labels;
-    this.entrypoint = opts.entrypoint;
-    this.environment = opts.environment;
+    this.image = opts.Image;
+    this.command = opts.Cmd;
+    this.hostConfig = opts.HostConfig;
+    this.labels = opts.Labels;
+    this.entrypoint = opts.Entrypoint;
+    this.environment = opts.Env;
   }
 
-  async create () {
+  async create () : Promise<ContainerInterface | undefined> {
+    let container: ContainerInterface;
     try {
-      const container = await DockerClient.createContainer({
+      const createOpts: ContainerCreateOptions = {
+        name: this.name,
         Image: this.image,
         Cmd: this.command,
         HostConfig: this.hostConfig,
         Labels: this.labels,
         Entrypoint: this.entrypoint
-      })
+      }
+      container = await DockerClient.createContainer(createOpts);
       return container;
     }
     catch (err) {
       console.log(`create container error: ${err}`);
+      return;
     }
   }
 
-  static async start (container: any) {
+  static async start (container: any) : Promise<void> {
     try {
       const data = await container.start();
       console.log(`Started container ${container['Id']}`);
@@ -51,7 +55,7 @@ export class Container {
     }
   }
 
-  static async stop (container: any) {
+  static async stop (container: any) : Promise<void> {
     try {
       const data = await container.stop();
       console.log(`Stopped container: ${data['message']}`);
@@ -62,7 +66,7 @@ export class Container {
   }
 
 
-  static async remove (container: any) {
+  static async remove (container: any) : Promise<void> {
     try {
       const data = await container.remove();
       console.log(`Removed container: ${data['message']}`);
