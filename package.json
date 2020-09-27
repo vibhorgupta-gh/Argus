@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "@types/dockerode": "^2.5.34",
-    "dockerode": "^3.2.1"
+    "dockerode": "^3.2.1",
+    "yargs": "^16.0.3"
   },
   "devDependencies": {
     "@tsconfig/node12": "^1.0.7",
