@@ -1,42 +1,28 @@
-import Docker, { Container as ContainerInterface, ContainerCreateOptions, HostConfig } from 'dockerode';
-
-let DockerClient = new Docker();
+import { Container as ContainerInterface, ContainerCreateOptions, ContainerInfo, ContainerInspectInfo, HostConfig } from 'dockerode';
 
 
 export class Container {
 
-  name: string | undefined;
-  image: string | undefined;
-  command: string[] | undefined;
-  hostConfig: HostConfig | undefined;
-  labels: { [label: string]: string } | undefined;
-  entrypoint: string | string [] | undefined;
-  environment: any;
+  client: any;
 
-
-  constructor (opts: ContainerCreateOptions) {
-
-    this.name = opts.name;
-    this.image = opts.Image;
-    this.command = opts.Cmd;
-    this.hostConfig = opts.HostConfig;
-    this.labels = opts.Labels;
-    this.entrypoint = opts.Entrypoint;
-    this.environment = opts.Env;
+  constructor (client: any) {
+    this.client = client;
   }
 
-  async create () : Promise<ContainerInterface | undefined> {
+  async create (opts: ContainerCreateOptions) : Promise<ContainerInterface | undefined> {
     let container: ContainerInterface;
+    const { name, Image, Cmd, HostConfig, Labels, Entrypoint, Env } = opts;
     try {
       const createOpts: ContainerCreateOptions = {
-        name: this.name,
-        Image: this.image,
-        Cmd: this.command,
-        HostConfig: this.hostConfig,
-        Labels: this.labels,
-        Entrypoint: this.entrypoint
+        name,
+        Image,
+        Cmd,
+        HostConfig,
+        Labels,
+        Entrypoint,
+        Env
       }
-      container = await DockerClient.createContainer(createOpts);
+      container = await this.client.createContainer(createOpts);
       return container;
     }
     catch (err) {
@@ -74,6 +60,43 @@ export class Container {
     catch (err) {
       console.log(`remove container error: ${err}`);
     }
+  }
+
+  async getRunningContainers () : Promise<ContainerInspectInfo[] | undefined> {
+    let runningContainers: ContainerInspectInfo[] = []
+    const opts: object = {
+      filters: {
+        'status': ['running']
+      }
+    }
+    try {
+      const containers: ContainerInfo[] = await this.client.listContainers(opts);
+
+      for (const c of containers) {
+        const container: ContainerInterface = await this.client.getContainer(c.Id);
+        const containerInspect: ContainerInspectInfo = await container.inspect();
+        runningContainers.push(containerInspect);
+      }
+
+      return runningContainers;
+    }
+    catch (err) {
+      console.log(`running containers error: ${err}`);
+      return;
+    }
+  }
+
+  static newContainerConfig (oldContainer: ContainerInspectInfo, newImage: string) : ContainerCreateOptions {
+    const config: ContainerCreateOptions = {
+      name: oldContainer['Name'].replace('/', ''),
+      Image: newImage,
+      Cmd: oldContainer['Config']['Cmd'],
+      HostConfig: oldContainer['HostConfig'],
+      Labels: oldContainer['Config']['Labels'],
+      Entrypoint: oldContainer['Config']['Entrypoint'],
+      Env: oldContainer['Config']['Env']
+    }
+    return config;
   }
 
 }
