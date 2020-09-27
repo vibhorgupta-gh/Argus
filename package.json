@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.ts"
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@types/dockerode": "^2.5.34",
