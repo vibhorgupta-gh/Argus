@@ -21,7 +21,7 @@ export class Container {
   }
 
   async create(
-    opts: ContainerCreateOptions
+    opts: any
   ): Promise<ContainerInterface | undefined> {
     let container: ContainerInterface;
     const { name, Image, Cmd, HostConfig, Labels, Entrypoint, Env } = opts;
