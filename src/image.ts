@@ -2,7 +2,7 @@ import {
   Image as ImageInterface,
   ImageInspectInfo,
   ImageInfo,
-} from "dockerode";
+} from 'dockerode';
 
 export class Image {
   client: any;
@@ -36,7 +36,7 @@ export class Image {
     image: ImageInspectInfo
   ): Promise<ImageInspectInfo | undefined> {
     try {
-      const latestName: string = `${image.RepoTags[0].split(":")[0]}:latest`;
+      const latestName = `${image.RepoTags[0].split(':')[0]}:latest`;
       await this.client.pull(latestName);
       return await this.inspect(latestName);
     } catch (err) {

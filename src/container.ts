@@ -4,7 +4,7 @@ import {
   ContainerInfo,
   ContainerInspectInfo,
   HostConfig,
-} from "dockerode";
+} from 'dockerode';
 
 export class Container {
   client: any;
@@ -39,7 +39,7 @@ export class Container {
   static async start(container: any): Promise<void> {
     try {
       const data = await container.start();
-      console.log(`Started container ${container["Id"]}`);
+      console.log(`Started container ${container['Id']}`);
     } catch (err) {
       console.log(`start container error: ${err}`);
     }
@@ -48,7 +48,7 @@ export class Container {
   static async stop(container: any): Promise<void> {
     try {
       const data = await container.stop();
-      console.log(`Stopped container: ${data["message"]}`);
+      console.log(`Stopped container: ${data['message']}`);
     } catch (err) {
       console.log(`stop container error: ${err}`);
     }
@@ -57,17 +57,17 @@ export class Container {
   static async remove(container: any): Promise<void> {
     try {
       const data = await container.remove();
-      console.log(`Removed container: ${data["message"]}`);
+      console.log(`Removed container: ${data['message']}`);
     } catch (err) {
       console.log(`remove container error: ${err}`);
     }
   }
 
   async getRunningContainers(): Promise<ContainerInspectInfo[] | undefined> {
-    let runningContainers: ContainerInspectInfo[] = [];
-    const opts: object = {
+    const runningContainers: ContainerInspectInfo[] = [];
+    const opts: any = {
       filters: {
-        status: ["running"],
+        status: ['running'],
       },
     };
     try {
@@ -95,13 +95,13 @@ export class Container {
     newImage: string
   ): ContainerCreateOptions {
     const config: ContainerCreateOptions = {
-      name: oldContainer["Name"].replace("/", ""),
+      name: oldContainer['Name'].replace('/', ''),
       Image: newImage,
-      Cmd: oldContainer["Config"]["Cmd"],
-      HostConfig: oldContainer["HostConfig"],
-      Labels: oldContainer["Config"]["Labels"],
-      Entrypoint: oldContainer["Config"]["Entrypoint"],
-      Env: oldContainer["Config"]["Env"],
+      Cmd: oldContainer['Config']['Cmd'],
+      HostConfig: oldContainer['HostConfig'],
+      Labels: oldContainer['Config']['Labels'],
+      Entrypoint: oldContainer['Config']['Entrypoint'],
+      Env: oldContainer['Config']['Env'],
     };
     return config;
   }
