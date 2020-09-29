@@ -1,4 +1,4 @@
-import { Image } from '../../src/image';
+import { Image } from '../../image';
 import { dummy_images } from '../resources/dummy_images';
 import {
   dummy_inspect_response,
