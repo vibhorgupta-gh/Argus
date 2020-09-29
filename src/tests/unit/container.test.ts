@@ -1,66 +1,51 @@
 import Docker from 'dockerode';
 import { Container } from '../../container';
 import { dummy_container } from '../resources/dummy_container';
-import { dummy_container_response } from '../resources/dummy_container';
+import { dummy_info } from '../resources/dummy_info';
+import { dummy_container_responses } from '../resources/dummy_container_response';
 
 
 const DockerClient = new Docker();
 const ContainerClient = new Container(DockerClient);
 
-let newContainer: any;
+describe('Container Client', () => {
+    let containerData = dummy_container_responses;
+    const MockDockerClient = {
+        listContainers: (opts: any) => new Promise((resolve, reject) => {
+            resolve(dummy_info);
+        }),
 
-beforeEach(() => {
-    // Stopping all previously running containers
-    DockerClient.listContainers((err, containers) => {
+        createContainer: (opts:any) => new Promise((resolve, reject)=> {
+            resolve(dummy_container);
+        }),
+
+        getContainer: (id: any) => new Promise((resolve, reject) => {
+            resolve({
+                inspect: () => new Promise(res => res(dummy_container))
+            });
+        })
+    }
+
+    const containerClient = new Container(MockDockerClient);
+
+    test('creating a container', async()=> {
+    const container = await containerClient.create(dummy_container)
+    expect(container).toEqual(dummy_container)
+})
+
+    test('starting a container', async() => {
+        // const container = await containerClient.create(dummy_container);
+        const containers = await containerClient.getRunningContainers()
+
         if(containers){
-            containers.forEach((container) => {
-                DockerClient.getContainer(container.Id).stop();
-            })
+            expect(containers[0]).toEqual(dummy_container)
+        } else{
+            throw new Error('Cannot find running containers')
         }
        
+       
+        
     })
+}) 
 
-    // Creating a new container
-     newContainer = ContainerClient.create(dummy_container)
-})
 
-test('check if container is running', async () => {
-
-    await Container.start(newContainer);
-
-    const containers = await ContainerClient.getRunningContainers();
-    if(containers){
-        expect(containers.length).toBe(1);
-        expect(containers[0]).toEqual(dummy_container_response[0]);
-    } else {
-        throw new Error('No containers running');
-    }   
-})
-
-test('start a container', async () => {
-
-    await Container.start(newContainer);
-    const containers = await ContainerClient.getRunningContainers();
-
-    if(containers){
-        expect(containers[0].State).toBe("running")
-    }
-})
-
-test('stop a container', async() => {
-    
-    await Container.start(newContainer);
-    await Container.stop(newContainer);
-    const containers = await ContainerClient.getRunningContainers();
-
-    if(containers){
-        expect(containers[0].State).toBe("exited");
-    }
-})
-
-test('remove a container', async() => {
-
-    Container.remove(newContainer);
-    expect(DockerClient.listContainers.length).toBe(0);
-
-})

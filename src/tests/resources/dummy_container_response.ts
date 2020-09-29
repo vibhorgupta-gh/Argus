@@ -1,4 +1,4 @@
-export const dummy_container_response = [
+export const dummy_container_responses = [
     {
       "Id": "8dfafdbc3a40",
       "Names": [
