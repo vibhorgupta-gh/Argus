@@ -25,7 +25,7 @@ async function executeArgus(): Promise<void> {
     | undefined = await ContainerClient.getRunningContainers();
 
   if (containers.length == 0) {
-    console.log(`\n`, chalk.yellow('No running containers'));
+    console.log(`\n`, chalk.yellow('No running containers'), `\n\n`);
   } else {
     let count = 0;
 
@@ -36,7 +36,10 @@ async function executeArgus(): Promise<void> {
         containerObject.interfaceObject;
       console.log(
         chalk.cyan(
-          `${containerInspect['Name'].replace('/', '')} is being updated`
+          `Container to be updated: ${containerInspect['Name'].replace(
+            '/',
+            ''
+          )}`
         ),
         `\n`
       );
@@ -55,8 +58,12 @@ async function executeArgus(): Promise<void> {
           `\n`
         );
         latestImage = await ImageClient.pullLatestImage(currentImage);
+        if (!latestImage) {
+          continue;
+        }
       } catch (err) {
         console.log(chalk.red(`Docker API error: ${err.message}`));
+        console.log('enter');
         continue;
       }
 
@@ -74,7 +81,7 @@ async function executeArgus(): Promise<void> {
         count += 1;
       }
     }
-    console.log(`\n`, chalk.green(`${count} containers updated.`));
+    console.log(chalk.green(`${count} containers updated.`), `\n\n\n\n`);
   }
 }
 
@@ -82,5 +89,9 @@ console.log(
   chalk.red(figlet.textSync('Argus', { horizontalLayout: 'fitted' })),
   `\n\n`
 );
+
+setInterval(() => {
+  executeArgus();
+}, 15000);
 
 executeArgus();

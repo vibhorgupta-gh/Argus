@@ -43,7 +43,11 @@ export class Image {
       const inspectObject: ImageInspectInfo = await this.inspect(latestName);
       return inspectObject;
     } catch (err) {
-      console.log(chalk.red(`Pull latest image error: ${err.message}`));
+      if (err instanceof TypeError) {
+        console.log(`Container already running for the latest image.\n`);
+      } else {
+        console.log(chalk.red(`Pull latest image error: ${err}`));
+      }
       return;
     }
   }
