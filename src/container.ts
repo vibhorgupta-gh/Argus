@@ -6,6 +6,7 @@ import {
   HostConfig,
 } from 'dockerode';
 
+import chalk from 'chalk';
 
 export interface RunningContainerInfo {
   inspectObject?: ContainerInspectInfo;
@@ -37,7 +38,7 @@ export class Container {
       container = await this.client.createContainer(createOpts);
       return container;
     } catch (err) {
-      console.log(`create container error: ${err}`);
+      console.log(chalk.red(`create container error: ${err}`));
       return;
     }
   }
@@ -45,27 +46,27 @@ export class Container {
   static async start(container: any): Promise<void> {
     try {
       await container.start();
-      console.log(`Started container ${container['id']}`);
+      console.log(chalk.cyan(`Started container ${container['id']}`));
     } catch (err) {
-      console.log(`start container error: ${err}`);
+      console.log(chalk.red(`start container error: ${err}`));
     }
   }
 
   static async stop(container: ContainerInterface): Promise<void> {
     try {
       await container.stop();
-      console.log(`Stopped container ${container['id']}`);
+      console.log(chalk.cyan(`Stopped container ${container['id']}`));
     } catch (err) {
-      console.log(`stop container error: ${err}`);
+      console.log(chalk.red(`stop container error: ${err}`));
     }
   }
 
   static async remove(container: ContainerInterface): Promise<void> {
     try {
       await container.remove();
-      console.log(`Removed container ${container['id']}`);
+      console.log(chalk.cyan(`Removed container ${container['id']}`));
     } catch (err) {
-      console.log(`remove container error: ${err}`);
+      console.log(chalk.red(`remove container error: ${err}`));
     }
   }
 
@@ -88,14 +89,14 @@ export class Container {
         const containerInspect: ContainerInspectInfo = await container.inspect();
         const containerObject: RunningContainerInfo = {
           inspectObject: containerInspect,
-          interfaceObject: container
-        }
+          interfaceObject: container,
+        };
         runningContainers.push(containerObject);
       }
 
       return runningContainers;
     } catch (err) {
-      console.log(`running containers error: ${err}`);
+      console.log(chalk.red(`running containers error: ${err}`));
       return;
     }
   }

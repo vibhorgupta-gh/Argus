@@ -3,6 +3,7 @@ import {
   ImageInspectInfo,
   ImageInfo,
 } from 'dockerode';
+import chalk from 'chalk';
 
 export class Image {
   client: any;
@@ -16,7 +17,7 @@ export class Image {
       const imageList: ImageInfo[] = await this.client.listImages();
       return imageList;
     } catch (err) {
-      console.log(`List images error: ${err.message}`);
+      console.log(chalk.red(`List images error: ${err.message}`));
       return;
     }
   }
@@ -27,7 +28,7 @@ export class Image {
       const imageInfo: ImageInspectInfo = await image.inspect();
       return imageInfo;
     } catch (err) {
-      console.log(`Inspect images error: ${err.message}`);
+      console.log(chalk.red(`Inspect images error: ${err.message}`));
       return;
     }
   }
@@ -42,7 +43,7 @@ export class Image {
       const inspectObject: ImageInspectInfo = await this.inspect(latestName);
       return inspectObject;
     } catch (err) {
-      console.log(`Pull latest image error: ${err.message}`);
+      console.log(chalk.red(`Pull latest image error: ${err.message}`));
       return;
     }
   }
@@ -50,12 +51,10 @@ export class Image {
   static isUpdatedImage(oldSha: string, newSha: string): boolean {
     return newSha === oldSha;
   }
-
 }
 
-
 function delay(delayInms: number) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(() => {
       resolve(1);
     }, delayInms);
