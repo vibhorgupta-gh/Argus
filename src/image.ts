@@ -36,9 +36,11 @@ export class Image {
     image: ImageInspectInfo
   ): Promise<ImageInspectInfo | undefined> {
     try {
-      const latestName = `${image.RepoTags[0].split(':')[0]}:latest`;
+      const latestName = `${image.RepoTags[1].split(':')[0]}:latest`;
       await this.client.pull(latestName);
-      return await this.inspect(latestName);
+      await delay(6000);
+      const inspectObject: ImageInspectInfo = await this.inspect(latestName);
+      return inspectObject;
     } catch (err) {
       console.log(`Pull latest image error: ${err.message}`);
       return;
@@ -48,4 +50,14 @@ export class Image {
   static isUpdatedImage(oldSha: string, newSha: string): boolean {
     return newSha === oldSha;
   }
+
+}
+
+
+function delay(delayInms: number) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(1);
+    }, delayInms);
+  });
 }

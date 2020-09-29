@@ -6,6 +6,12 @@ import {
   HostConfig,
 } from 'dockerode';
 
+
+export interface RunningContainerInfo {
+  inspectObject?: ContainerInspectInfo;
+  interfaceObject?: ContainerInterface;
+}
+
 export class Container {
   client: any;
 
@@ -38,33 +44,33 @@ export class Container {
 
   static async start(container: any): Promise<void> {
     try {
-      const data = await container.start();
-      console.log(`Started container ${container['Id']}`);
+      await container.start();
+      console.log(`Started container ${container['id']}`);
     } catch (err) {
       console.log(`start container error: ${err}`);
     }
   }
 
-  static async stop(container: any): Promise<void> {
+  static async stop(container: ContainerInterface): Promise<void> {
     try {
-      const data = await container.stop();
-      console.log(`Stopped container: ${data['message']}`);
+      await container.stop();
+      console.log(`Stopped container ${container['id']}`);
     } catch (err) {
       console.log(`stop container error: ${err}`);
     }
   }
 
-  static async remove(container: any): Promise<void> {
+  static async remove(container: ContainerInterface): Promise<void> {
     try {
-      const data = await container.remove();
-      console.log(`Removed container: ${data['message']}`);
+      await container.remove();
+      console.log(`Removed container ${container['id']}`);
     } catch (err) {
       console.log(`remove container error: ${err}`);
     }
   }
 
-  async getRunningContainers(): Promise<ContainerInspectInfo[] | undefined> {
-    const runningContainers: ContainerInspectInfo[] = [];
+  async getRunningContainers(): Promise<RunningContainerInfo[] | undefined> {
+    const runningContainers: RunningContainerInfo[] = [];
     const opts: any = {
       filters: {
         status: ['running'],
@@ -80,7 +86,11 @@ export class Container {
           c.Id
         );
         const containerInspect: ContainerInspectInfo = await container.inspect();
-        runningContainers.push(containerInspect);
+        const containerObject: RunningContainerInfo = {
+          inspectObject: containerInspect,
+          interfaceObject: container
+        }
+        runningContainers.push(containerObject);
       }
 
       return runningContainers;
