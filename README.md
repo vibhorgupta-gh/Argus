@@ -1,6 +1,6 @@
 # Argus
 
-## About the Project :heart:
+## About the Project
 
 ### Overview and Intent
 
@@ -22,7 +22,7 @@ Argus automates the process of updating the Docker container on the basis of the
 
 Argus provides a solution to this predicament by automating the process of watching your containers, finding the underlying latest images (if any) locally and on a remote registry, gracefully quitting the running container, running a docker pull and thereafter creating and running a new container with the updated base image. This ensures that the service will keep track of new versions and will automatically update dockerized environments, remote servers in this context.
 
-### Tech Stack :star:
+### Tech Stack
 
 - [Typescript](https://www.typescriptlang.org/)
 - [Jest](https://jestjs.io/)
@@ -59,7 +59,7 @@ yarn run dev
 yarn run test
 ```
 
-## Contributing :tada:
+## Contributing
 
 Any and all contributions are welcome!
 
@@ -69,7 +69,7 @@ Any and all contributions are welcome!
 4. Push to your fork: `git push origin feature-branch`
 5. Open a Pull Request.
 
-## Future Plans
+## Future Plans :tada:
 
 1. Create a roadmap for `Argus v1.0.0`
 2. Figure out communication with remote servers
