@@ -1,53 +1,80 @@
 # Argus
 
-## Table of Contents
-
-* [About the Project](#about-the-project-heart)
-  * [Tech Stack](#tech-stack-star)
-* [Getting Started](#getting-started-zap)
-  * [Installation](#installation)
-* [Contributing](#contributing-tada)
-* [Future Plans](#future-plans)
-
 ## About the Project :heart:
-![Argus working screenshot](https://media.discordapp.net/attachments/757983515072790617/760420621304725514/Screenshot_2020-09-29_at_2.06.35_PM.png?width=844&height=936)
 
-Argus is a CLI tool which autmatically updates your running Docker container to the latest available base image.
+### Overview and Intent
+
+**Argus automatically updates your running Docker containers to the latest available image.**
+The problem with image and container management manually, especially in an environment where containers are running across servers and could need frequent updations due to latest images being pushed to the registry, is the plethora of tedious docker CLI commands required to run an updated container:
+
+```
+docker stop ...
+docker rm ...
+docker pull ...
+docker run ...
+```
+
+If you wish to cleanup redundant images, again `docker rmi -f`.
+
+### What it does
+
+Argus automates the process of updating the Docker container on the basis of the latest image available image locally or in your image registry. Let's assume the developer is publishing new versions of a Docker image consistently for an application that is deployed and running in Docker containers on the local/remote servers. In this case, the developer needs a way to propogate this image change to somehow the remote servers, but that's not all. Even after secure shell access into these servers, the developer needs to stop the existing container, docker pull the latest image and start the container with original configs and the new image as the base image within the server shell. This requires multiple (and often tedious) docker commands on the CLI. Moreover, if they wish to cleanup the out of date images and containers from the server, running pruning commands takes even more commands.
+
+Argus provides a solution to this predicament by automating the process of watching your containers, finding the underlying latest images (if any) locally and on a remote registry, gracefully quitting the running container, running a docker pull and thereafter creating and running a new container with the updated base image. This ensures that the service will keep track of new versions and will automatically update dockerized environments, remote servers in this context.
 
 ### Tech Stack :star:
 
-* [Typescript](https://www.typescriptlang.org/)
-* [Jest](https://jestjs.io/)
+- [Typescript](https://www.typescriptlang.org/)
+- [Jest](https://jestjs.io/)
+- [Yarn](https://classic.yarnpkg.com/en/docs/)
 
 ### Getting Started :zap:
 
-To get a local copy up and running follow these simple steps.
-
+Ensure you have the Docker engine installed and running. To setup a local copy, follow these simple steps.
 
 ### Installation
- 
-1. Fork the repo.
-2. Clone the repo.
-```sh
-git clone https://github.com/github_username/Argus.git
+
 ```
-3. Install the dependencies.
-```sh
-npm install
+npm i -g typescript
+git clone https://github.com/VibhorCodecianGupta/Argus.git
+yarn install
 ```
-4. Start index.ts
-```sh
-npm run start
+
+### Running a prod build
+
 ```
+yarn run build
+yarn run start
+```
+
+### Running in dev mode
+
+```
+yarn run dev
+```
+
+### Running test suites
+
+```
+yarn run test
+```
+
 ## Contributing :tada:
 
-Being a project of an open source competition, we believe in the power of PRs as that's what makes any project awesome and inspires us to create and learn. Any contributions you make are **greatly appreciated**.
+Any and all contributions are welcome!
 
 1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
+2. Create your feature breanch: `git checkout -b feature-branch`
+3. Commit your Changes: `git commit -m "Add some cool feature"`
+4. Push to your fork: `git push origin feature-branch`
 5. Open a Pull Request.
 
 ## Future Plans
-1. Publish as an npm package.
+
+1. Create a roadmap for `Argus v1.0.0`
+2. Figure out communication with remote servers
+3. Add customisability to the tool via CLI options
+4. Containerize the tool
+5. Publish as a package
+
+_Note_: You can check out Issue tracker and ongoing projects to look for existing issues and start contributing!
