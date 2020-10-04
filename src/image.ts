@@ -38,10 +38,20 @@ export class Image {
   ): Promise<ImageInspectInfo | undefined> {
     try {
       const latestName = `${image.RepoTags[1].split(':')[0]}:latest`;
-      await this.client.pull(latestName);
-      await delay(6000);
-      const inspectObject: ImageInspectInfo = await this.inspect(latestName);
-      return inspectObject;
+
+      return new Promise((resolve, reject) => {
+        this.client.pull(latestName, (err: any, stream: any) => {
+          this.client.modem.followProgress(
+            stream,
+            async (err: any, output: any) => {
+              const inspectObject: ImageInspectInfo = await this.inspect(
+                latestName
+              );
+              resolve(inspectObject);
+            }
+          );
+        });
+      });
     } catch (err) {
       if (err instanceof TypeError) {
         console.log(`Container already running for the latest image.\n`);
@@ -55,12 +65,4 @@ export class Image {
   static isUpdatedImage(oldSha: string, newSha: string): boolean {
     return newSha === oldSha;
   }
-}
-
-function delay(delayInms: number) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(1);
-    }, delayInms);
-  });
 }
