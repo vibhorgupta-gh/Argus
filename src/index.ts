@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
+import Docker from 'dockerode';
 import yargs = require('yargs/yargs');
 import figlet from 'figlet';
 import chalk from 'chalk';
 import executeArgus from './script';
-import { Arguments } from './interfaces';
+import { Image } from './image';
+import { Container } from './container';
+import { Client } from './client';
+import { Arguments, ConfigInterface } from './interfaces';
 import { Config } from './config';
-
 
 const argv: Arguments = yargs(process.argv.slice(2))
   .option('runonce', {
@@ -43,17 +46,28 @@ const argv: Arguments = yargs(process.argv.slice(2))
   .alias('help', 'h')
   .argv;
 
-const config = new Config(argv);
-console.log(config);
 
+// Set configs and initialize clients
+const clientConfig: ConfigInterface = new Config(argv);
+Client.DockerClient = new Docker();
+Client.ContainerClient = new Container(Client.DockerClient);
+Client.ImageClient = new Image(Client.DockerClient);
+
+
+// Run Argus
 console.log(
   chalk.red(figlet.textSync('Argus', { horizontalLayout: 'fitted' })),
   `\n\n`
 );
 
-setInterval(() => {
-  executeArgus();
-}, 15000);
+if (clientConfig.runOnce) {
+  executeArgus(clientConfig, Client.ContainerClient, Client.ImageClient);
+} 
+else {
+  setInterval(() => {
+    executeArgus(clientConfig, Client.ContainerClient, Client.ImageClient);
+  }, clientConfig.watchInterval * 1000);
 
-executeArgus();
+  executeArgus(clientConfig, Client.ContainerClient, Client.ImageClient);
+}
 

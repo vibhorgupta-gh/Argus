@@ -1,24 +1,16 @@
-import Docker, {
+import {
   Container as ContainerInterface,
   ContainerCreateOptions,
-  ContainerInfo,
   ContainerInspectInfo,
-  HostConfig,
-  Image as ImageInterface,
-  ImageInspectInfo,
-  ImageInfo,
+  ImageInspectInfo
 } from 'dockerode';
 import chalk from 'chalk';
 import { Image } from './image';
 import { Container } from './container';
-import { RunningContainerInfo } from './interfaces';
+import { RunningContainerInfo, ConfigInterface } from './interfaces';
 
 
-const DockerClient = new Docker();
-const ContainerClient = new Container(DockerClient);
-const ImageClient = new Image(DockerClient);
-
-async function executeArgus(): Promise<void> {
+async function executeArgus(config:ConfigInterface, ContainerClient:any, ImageClient:any ): Promise<void> {
   const containers:
     | RunningContainerInfo[]
     | undefined = await ContainerClient.getRunningContainers();

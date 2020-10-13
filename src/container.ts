@@ -2,16 +2,11 @@ import {
   Container as ContainerInterface,
   ContainerCreateOptions,
   ContainerInfo,
-  ContainerInspectInfo,
-  HostConfig,
+  ContainerInspectInfo
 } from 'dockerode';
-
+import { RunningContainerInfo } from './interfaces';
 import chalk from 'chalk';
 
-export interface RunningContainerInfo {
-  inspectObject?: ContainerInspectInfo;
-  interfaceObject?: ContainerInterface;
-}
 
 export class Container {
   client: any;
