@@ -1,89 +1,50 @@
-import Docker, {
-  Container as ContainerInterface,
-  ContainerCreateOptions,
-  ContainerInfo,
-  ContainerInspectInfo,
-  HostConfig,
-  Image as ImageInterface,
-  ImageInspectInfo,
-  ImageInfo,
-} from 'dockerode';
+#!/usr/bin/env node
 
+import yargs = require('yargs/yargs');
 import figlet from 'figlet';
 import chalk from 'chalk';
+import executeArgus from './script';
+import { Arguments } from './interfaces';
+import { Config } from './config';
 
-import { Image } from './image';
-import { Container, RunningContainerInfo } from './container';
 
-const DockerClient = new Docker();
-const ContainerClient = new Container(DockerClient);
-const ImageClient = new Image(DockerClient);
+const argv: Arguments = yargs(process.argv.slice(2))
+  .option('runonce', {
+    alias: 'r',
+    description: 'Run Argus once and exit',
+    type: 'boolean',
+    default: false
+  })
+  .option('cleanup', {
+    alias: 'c',
+    description: 'Remove outdated images after updating container',
+    type: 'boolean',
+    default: false
+  })
+  .option('host', {
+    alias: 'u',
+    description: 'Url for tcp host. Defaults to "unix://var/run/docker.sock',
+    type: 'string',
+    default: 'unix://var/run/docker.sock'
+  })
+  .option('interval', {
+    alias: 'i',
+    description: 'Interval between Argus checking for updates. Defaults to 300 seconds',
+    type: 'number',
+    default: 300
+  })
+  .option('monitor', {
+    alias: 'm',
+    description: 'Specify containers (by name) to monitor. Defaults to all containers',
+    type: 'array',
+    default: []
+  })
+  .help()
+  .alias('help', 'h')
+  .argv;
 
-async function executeArgus(): Promise<void> {
-  const containers:
-    | RunningContainerInfo[]
-    | undefined = await ContainerClient.getRunningContainers();
-
-  if (containers.length == 0) {
-    console.log(`\n`, chalk.yellow('No running containers'), `\n\n`);
-  } else {
-    let count = 0;
-
-    for (const containerObject of containers) {
-      const containerInspect: ContainerInspectInfo =
-        containerObject.inspectObject;
-      const containerInterface: ContainerInterface =
-        containerObject.interfaceObject;
-      console.log(
-        chalk.cyan(
-          `Container to be updated: ${containerInspect['Name'].replace(
-            '/',
-            ''
-          )}`
-        ),
-        `\n`
-      );
-
-      console.log(chalk.yellow('Checking locally for current image...'));
-      const currentImage:
-        | ImageInspectInfo
-        | undefined = await ImageClient.inspect(
-        containerInspect.Config['Image']
-      );
-      let latestImage: ImageInspectInfo | undefined;
-
-      try {
-        console.log(
-          chalk.yellow('Pulling latest image from registry...'),
-          `\n`
-        );
-        latestImage = await ImageClient.pullLatestImage(currentImage);
-        if (!latestImage) {
-          continue;
-        }
-      } catch (err) {
-        console.log(chalk.red(`Docker API error: ${err.message}`));
-        console.log('enter');
-        continue;
-      }
-
-      if (!Image.isUpdatedImage(currentImage['Id'], latestImage['Id'])) {
-        const newConfig: ContainerCreateOptions = Container.newContainerConfig(
-          containerInspect,
-          latestImage.RepoTags[0]
-        );
-        await Container.stop(containerInterface);
-        await Container.remove(containerInterface);
-        const newContainer:
-          | ContainerInterface
-          | undefined = await ContainerClient.create(newConfig);
-        await Container.start(newContainer);
-        count += 1;
-      }
-    }
-    console.log(chalk.green(`${count} containers updated.`), `\n\n\n\n`);
-  }
-}
+const config = new Config(argv);
+console.log(config);
 
 console.log(
   chalk.red(figlet.textSync('Argus', { horizontalLayout: 'fitted' })),
@@ -95,3 +56,4 @@ setInterval(() => {
 }, 15000);
 
 executeArgus();
+
