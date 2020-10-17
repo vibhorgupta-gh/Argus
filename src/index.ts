@@ -4,11 +4,15 @@ import Docker from 'dockerode';
 import yargs = require('yargs/yargs');
 import figlet from 'figlet';
 import chalk from 'chalk';
-import executeArgus from './script';
 import { Image } from './image';
 import { Container } from './container';
 import { Client } from './client';
-import { Arguments, ConfigInterface } from './interfaces';
+import {
+  Arguments,
+  ConfigInterface,
+  ContainerClientInterface,
+  ImageClientInterface,
+} from './interfaces';
 import { Config } from './config';
 
 const argv: Arguments = yargs(process.argv.slice(2))
@@ -16,43 +20,49 @@ const argv: Arguments = yargs(process.argv.slice(2))
     alias: 'r',
     description: 'Run Argus once and exit',
     type: 'boolean',
-    default: false
+    default: false,
   })
   .option('cleanup', {
     alias: 'c',
     description: 'Remove outdated images after updating container',
     type: 'boolean',
-    default: false
+    default: false,
   })
   .option('host', {
     alias: 'u',
     description: 'Url for tcp host. Defaults to "unix://var/run/docker.sock',
     type: 'string',
-    default: 'unix://var/run/docker.sock'
+    default: 'unix://var/run/docker.sock',
   })
   .option('interval', {
     alias: 'i',
-    description: 'Interval between Argus checking for updates. Defaults to 300 seconds',
+    description:
+      'Interval between Argus checking for updates. Defaults to 300 seconds',
     type: 'number',
-    default: 300
+    default: 300,
   })
   .option('monitor', {
     alias: 'm',
-    description: 'Specify containers (by name) to monitor. Defaults to all containers',
+    description:
+      'Specify containers (by name) to monitor. Defaults to all containers',
     type: 'array',
-    default: []
+    default: [],
   })
   .help()
-  .alias('help', 'h')
-  .argv;
+  .alias('help', 'h').argv;
 
+// Set configs and clients
+const ClientConfig: ConfigInterface = new Config(argv);
+const DockerClient = new Docker();
+const ContainerClient: ContainerClientInterface = new Container(DockerClient);
+const ImageClient: ImageClientInterface = new Image(DockerClient);
 
-// Set configs and initialize clients
-const clientConfig: ConfigInterface = new Config(argv);
-Client.DockerClient = new Docker();
-Client.ContainerClient = new Container(Client.DockerClient);
-Client.ImageClient = new Image(Client.DockerClient);
-
+const Argus = new Client(
+  DockerClient,
+  ContainerClient,
+  ImageClient,
+  ClientConfig
+);
 
 // Run Argus
 console.log(
@@ -60,14 +70,11 @@ console.log(
   `\n\n`
 );
 
-if (clientConfig.runOnce) {
-  executeArgus(clientConfig, Client.ContainerClient, Client.ImageClient);
-} 
-else {
+if (ClientConfig.runOnce) {
+  Argus.execute();
+} else {
   setInterval(() => {
-    executeArgus(clientConfig, Client.ContainerClient, Client.ImageClient);
-  }, clientConfig.watchInterval * 1000);
-
-  executeArgus(clientConfig, Client.ContainerClient, Client.ImageClient);
+    Argus.execute();
+  }, ClientConfig.watchInterval * 1000);
+  Argus.execute();
 }
-

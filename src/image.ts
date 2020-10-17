@@ -3,9 +3,10 @@ import {
   ImageInspectInfo,
   ImageInfo,
 } from 'dockerode';
+import { ImageClientInterface } from './interfaces';
 import chalk from 'chalk';
 
-export class Image {
+export class Image implements ImageClientInterface {
   client: any;
 
   constructor(client: any) {

@@ -2,13 +2,12 @@ import {
   Container as ContainerInterface,
   ContainerCreateOptions,
   ContainerInfo,
-  ContainerInspectInfo
+  ContainerInspectInfo,
 } from 'dockerode';
-import { RunningContainerInfo } from './interfaces';
+import { RunningContainerInfo, ContainerClientInterface } from './interfaces';
 import chalk from 'chalk';
 
-
-export class Container {
+export class Container implements ContainerClientInterface {
   client: any;
 
   constructor(client: any) {
@@ -16,20 +15,10 @@ export class Container {
   }
 
   async create(
-    opts: any
+    createOpts: ContainerCreateOptions
   ): Promise<ContainerInterface | undefined> {
     let container: ContainerInterface;
-    const { name, Image, Cmd, HostConfig, Labels, Entrypoint, Env } = opts;
     try {
-      const createOpts: ContainerCreateOptions = {
-        name,
-        Image,
-        Cmd,
-        HostConfig,
-        Labels,
-        Entrypoint,
-        Env,
-      };
       container = await this.client.createContainer(createOpts);
       return container;
     } catch (err) {
@@ -38,7 +27,7 @@ export class Container {
     }
   }
 
-  static async start(container: any): Promise<void> {
+  static async start(container: ContainerInterface): Promise<void> {
     try {
       await container.start();
       console.log(chalk.cyan(`Started container ${container['id']}`));
