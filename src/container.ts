@@ -85,6 +85,20 @@ export class Container implements ContainerClientInterface {
     }
   }
 
+  static getRunningContainersToMonitor(
+    containers: RunningContainerInfo[] | undefined,
+    containerNames: string[] | undefined
+  ): RunningContainerInfo[] | undefined {
+    if (containerNames.length == 0) {
+      return containers;
+    }
+    let containersToMonitor: RunningContainerInfo[] | undefined = [];
+    containersToMonitor = containers.filter((container) =>
+      containerNames.includes(container.inspectObject?.Name.substring(1))
+    );
+    return containersToMonitor;
+  }
+
   static newContainerConfig(
     oldContainer: ContainerInspectInfo,
     newImage: string

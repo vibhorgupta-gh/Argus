@@ -34,64 +34,77 @@ export class Client implements ArgusClientInterface {
   }
 
   async execute(): Promise<void | undefined> {
-    const containers:
+    const runningContainers:
       | RunningContainerInfo[]
       | undefined = await this.ContainerClient.getRunningContainers();
 
-    if (containers.length == 0) {
+    if (runningContainers.length == 0) {
       console.log(`\n`, chalk.yellow('No running containers'), `\n\n`);
     } else {
       let count = 0;
+      const containersToMonitor = Container.getRunningContainersToMonitor(
+        runningContainers,
+        this.ClientConfig.containersToMonitor
+      );
 
-      for (const containerObject of containers) {
-        const containerInspect: ContainerInspectInfo =
-          containerObject.inspectObject;
-        const containerInterface: ContainerInterface =
-          containerObject.interfaceObject;
+      if (containersToMonitor.length == 0) {
         console.log(
-          chalk.cyan(
-            `Container to be updated: ${containerInspect['Name'].replace(
-              '/',
-              ''
-            )}`
+          chalk.yellow(
+            'No running containers with provided names! Please specify valid names.'
           ),
-          `\n`
+          `\n\n`
         );
-
-        console.log(chalk.yellow('Checking locally for current image...'));
-        const currentImage:
-          | ImageInspectInfo
-          | undefined = await this.ImageClient.inspect(
-          containerInspect.Config['Image']
-        );
-        let latestImage: ImageInspectInfo | undefined;
-
-        try {
+      } else {
+        for (const containerObject of containersToMonitor) {
+          const containerInspect: ContainerInspectInfo =
+            containerObject.inspectObject;
+          const containerInterface: ContainerInterface =
+            containerObject.interfaceObject;
           console.log(
-            chalk.yellow('Pulling latest image from registry...'),
+            chalk.cyan(
+              `Container to be updated: ${containerInspect['Name'].replace(
+                '/',
+                ''
+              )}`
+            ),
             `\n`
           );
-          latestImage = await this.ImageClient.pullLatestImage(currentImage);
-          if (!latestImage) {
+
+          console.log(chalk.yellow('Checking locally for current image...'));
+          const currentImage:
+            | ImageInspectInfo
+            | undefined = await this.ImageClient.inspect(
+            containerInspect.Config['Image']
+          );
+          let latestImage: ImageInspectInfo | undefined;
+
+          try {
+            console.log(
+              chalk.yellow('Pulling latest image from registry...'),
+              `\n`
+            );
+            latestImage = await this.ImageClient.pullLatestImage(currentImage);
+            if (!latestImage) {
+              continue;
+            }
+          } catch (err) {
+            console.log(chalk.red(`Docker API error: ${err.message}`));
             continue;
           }
-        } catch (err) {
-          console.log(chalk.red(`Docker API error: ${err.message}`));
-          continue;
-        }
 
-        if (!Image.isUpdatedImage(currentImage['Id'], latestImage['Id'])) {
-          const newConfig: ContainerCreateOptions = Container.newContainerConfig(
-            containerInspect,
-            latestImage.RepoTags[0]
-          );
-          await Container.stop(containerInterface);
-          await Container.remove(containerInterface);
-          const newContainer:
-            | ContainerInterface
-            | undefined = await this.ContainerClient.create(newConfig);
-          await Container.start(newContainer);
-          count += 1;
+          if (!Image.isUpdatedImage(currentImage['Id'], latestImage['Id'])) {
+            const newConfig: ContainerCreateOptions = Container.newContainerConfig(
+              containerInspect,
+              latestImage.RepoTags[0]
+            );
+            await Container.stop(containerInterface);
+            await Container.remove(containerInterface);
+            const newContainer:
+              | ContainerInterface
+              | undefined = await this.ContainerClient.create(newConfig);
+            await Container.start(newContainer);
+            count += 1;
+          }
         }
       }
       console.log(chalk.green(`${count} containers updated.`), `\n\n\n\n`);

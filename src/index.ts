@@ -45,8 +45,8 @@ const argv: Arguments = yargs(process.argv.slice(2))
     alias: 'm',
     description:
       'Specify containers (by name) to monitor. Defaults to all containers',
-    type: 'array',
-    default: [],
+    type: 'string',
+    default: null,
   })
   .help()
   .alias('help', 'h').argv;

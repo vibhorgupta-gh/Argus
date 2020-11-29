@@ -12,7 +12,7 @@ export interface Arguments {
   cleanup: boolean;
   host: string | undefined;
   interval: number | undefined;
-  monitor: (string | number)[] | undefined;
+  monitor: string | undefined;
   $0: string;
 }
 
@@ -21,7 +21,7 @@ export interface ConfigInterface {
   cleanImages: boolean;
   dockerHost: string | undefined;
   watchInterval: number | undefined;
-  containersToMonitor: (string | number)[] | undefined;
+  containersToMonitor: string[] | undefined;
 }
 
 export interface RunningContainerInfo {
