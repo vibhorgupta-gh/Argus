@@ -45,10 +45,17 @@ export class Image implements ImageClientInterface {
           this.client.modem.followProgress(
             stream,
             async (err: any, output: any) => {
-              const inspectObject: ImageInspectInfo = await this.inspect(
-                latestName
-              );
-              resolve(inspectObject);
+              if (err) {
+                reject(err);
+              }
+              try {
+                const inspectObject: ImageInspectInfo = await this.inspect(
+                  latestName
+                );
+                resolve(inspectObject);
+              } catch (e) {
+                reject(e);
+              }
             }
           );
         });

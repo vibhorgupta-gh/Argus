@@ -33,7 +33,7 @@ export class Client implements ArgusClientInterface {
     this.ClientConfig = ClientConfig;
   }
 
-  async execute(): Promise<void> {
+  async execute(): Promise<void | undefined> {
     const containers:
       | RunningContainerInfo[]
       | undefined = await this.ContainerClient.getRunningContainers();
@@ -77,7 +77,6 @@ export class Client implements ArgusClientInterface {
           }
         } catch (err) {
           console.log(chalk.red(`Docker API error: ${err.message}`));
-          console.log('enter');
           continue;
         }
 
@@ -97,5 +96,6 @@ export class Client implements ArgusClientInterface {
       }
       console.log(chalk.green(`${count} containers updated.`), `\n\n\n\n`);
     }
+    if (this.ClientConfig.runOnce) return Promise.resolve();
   }
 }

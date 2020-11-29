@@ -65,16 +65,16 @@ const Argus = new Client(
 );
 
 // Run Argus
-console.log(
-  chalk.red(figlet.textSync('Argus', { horizontalLayout: 'fitted' })),
-  `\n\n`
-);
+(() => {
+  console.log(
+    chalk.red(figlet.textSync('Argus', { horizontalLayout: 'fitted' })),
+    `\n\n`
+  );
 
-if (ClientConfig.runOnce) {
+  if (!ClientConfig.runOnce) {
+    setInterval(() => {
+      Argus.execute();
+    }, ClientConfig.watchInterval * 1000);
+  }
   Argus.execute();
-} else {
-  setInterval(() => {
-    Argus.execute();
-  }, ClientConfig.watchInterval * 1000);
-  Argus.execute();
-}
+})();
