@@ -3,9 +3,10 @@ import {
   ImageInspectInfo,
   ImageInfo,
 } from 'dockerode';
+import { ImageClientInterface } from './interfaces';
 import chalk from 'chalk';
 
-export class Image {
+export class Image implements ImageClientInterface {
   client: any;
 
   constructor(client: any) {
@@ -44,10 +45,17 @@ export class Image {
           this.client.modem.followProgress(
             stream,
             async (err: any, output: any) => {
-              const inspectObject: ImageInspectInfo = await this.inspect(
-                latestName
-              );
-              resolve(inspectObject);
+              if (err) {
+                reject(err);
+              }
+              try {
+                const inspectObject: ImageInspectInfo = await this.inspect(
+                  latestName
+                );
+                resolve(inspectObject);
+              } catch (e) {
+                reject(e);
+              }
             }
           );
         });
@@ -56,9 +64,20 @@ export class Image {
       if (err instanceof TypeError) {
         console.log(`Container already running for the latest image.\n`);
       } else {
-        console.log(chalk.red(`Pull latest image error: ${err}`));
+        console.log(chalk.red(`Pull latest image error: ${err}`), `\n`);
       }
       return;
+    }
+  }
+
+  async remove(image: ImageInspectInfo): Promise<void> {
+    try {
+      const imageName: string = image.RepoTags[image.RepoTags.length - 1];
+      const imageObject: ImageInterface = await this.client.getImage(imageName);
+      await imageObject.remove();
+      console.log(chalk.cyan(`Removed image ${imageName}`));
+    } catch (err) {
+      console.log(chalk.red(`remove image error: ${err}`));
     }
   }
 

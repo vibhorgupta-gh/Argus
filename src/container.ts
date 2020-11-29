@@ -3,17 +3,11 @@ import {
   ContainerCreateOptions,
   ContainerInfo,
   ContainerInspectInfo,
-  HostConfig,
 } from 'dockerode';
-
+import { RunningContainerInfo, ContainerClientInterface } from './interfaces';
 import chalk from 'chalk';
 
-export interface RunningContainerInfo {
-  inspectObject?: ContainerInspectInfo;
-  interfaceObject?: ContainerInterface;
-}
-
-export class Container {
+export class Container implements ContainerClientInterface {
   client: any;
 
   constructor(client: any) {
@@ -21,20 +15,10 @@ export class Container {
   }
 
   async create(
-    opts: any
+    createOpts: ContainerCreateOptions
   ): Promise<ContainerInterface | undefined> {
     let container: ContainerInterface;
-    const { name, Image, Cmd, HostConfig, Labels, Entrypoint, Env } = opts;
     try {
-      const createOpts: ContainerCreateOptions = {
-        name,
-        Image,
-        Cmd,
-        HostConfig,
-        Labels,
-        Entrypoint,
-        Env,
-      };
       container = await this.client.createContainer(createOpts);
       return container;
     } catch (err) {
@@ -43,10 +27,10 @@ export class Container {
     }
   }
 
-  static async start(container: any): Promise<void> {
+  static async start(container: ContainerInterface): Promise<void> {
     try {
       await container.start();
-      console.log(chalk.cyan(`Started container ${container['id']}`));
+      console.log(chalk.cyan(`Started container ${container.id}`));
     } catch (err) {
       console.log(chalk.red(`start container error: ${err}`));
     }
@@ -55,7 +39,7 @@ export class Container {
   static async stop(container: ContainerInterface): Promise<void> {
     try {
       await container.stop();
-      console.log(chalk.cyan(`Stopped container ${container['id']}`));
+      console.log(chalk.cyan(`Stopped container ${container.id}`));
     } catch (err) {
       console.log(chalk.red(`stop container error: ${err}`));
     }
@@ -64,7 +48,7 @@ export class Container {
   static async remove(container: ContainerInterface): Promise<void> {
     try {
       await container.remove();
-      console.log(chalk.cyan(`Removed container ${container['id']}`));
+      console.log(chalk.cyan(`Removed container ${container.id}`));
     } catch (err) {
       console.log(chalk.red(`remove container error: ${err}`));
     }
@@ -101,18 +85,32 @@ export class Container {
     }
   }
 
+  static getRunningContainersToMonitor(
+    containers: RunningContainerInfo[] | undefined,
+    containerNames: string[] | undefined
+  ): RunningContainerInfo[] | undefined {
+    if (containerNames.length == 0) {
+      return containers;
+    }
+    let containersToMonitor: RunningContainerInfo[] | undefined = [];
+    containersToMonitor = containers.filter((container) =>
+      containerNames.includes(container.inspectObject?.Name.substring(1))
+    );
+    return containersToMonitor;
+  }
+
   static newContainerConfig(
     oldContainer: ContainerInspectInfo,
     newImage: string
   ): ContainerCreateOptions {
     const config: ContainerCreateOptions = {
-      name: oldContainer['Name'].replace('/', ''),
+      name: oldContainer.Name.replace('/', ''),
       Image: newImage,
-      Cmd: oldContainer['Config']['Cmd'],
-      HostConfig: oldContainer['HostConfig'],
-      Labels: oldContainer['Config']['Labels'],
-      Entrypoint: oldContainer['Config']['Entrypoint'],
-      Env: oldContainer['Config']['Env'],
+      Cmd: oldContainer.Config.Cmd,
+      HostConfig: oldContainer.HostConfig,
+      Labels: oldContainer.Config.Labels,
+      Entrypoint: oldContainer.Config.Entrypoint,
+      Env: oldContainer.Config.Env,
     };
     return config;
   }
