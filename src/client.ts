@@ -55,6 +55,7 @@ export class Client implements ArgusClientInterface {
           `\n\n`
         );
       } else {
+        // Non empty array of containers to be monitored
         for (const containerObject of containersToMonitor) {
           const containerInspect: ContainerInspectInfo =
             containerObject.inspectObject;
@@ -74,7 +75,7 @@ export class Client implements ArgusClientInterface {
           const currentImage:
             | ImageInspectInfo
             | undefined = await this.ImageClient.inspect(
-            containerInspect.Config['Image']
+            containerInspect.Config.Image
           );
           let latestImage: ImageInspectInfo | undefined;
 
@@ -84,7 +85,26 @@ export class Client implements ArgusClientInterface {
               `\n`
             );
             latestImage = await this.ImageClient.pullLatestImage(currentImage);
+
+            // Old image cleanup commences if container runs on outdated image (and a newer image is obtained above)
+            if (latestImage && this.ClientConfig.cleanImage) {
+              console.log(
+                chalk.yellow(
+                  `Removing outdated image: ${JSON.stringify(
+                    currentImage.RepoTags
+                  )}`
+                ),
+                `\n`
+              );
+              this.ImageClient.remove(currentImage);
+            }
+            // Container already running on latest image or a pull image error was encountered
             if (!latestImage) {
+              if (this.ClientConfig.cleanImage) {
+                console.log(
+                  `Image cleanup inconsequential, current base image is the latest version.\n`
+                );
+              }
               continue;
             }
           } catch (err) {
@@ -92,7 +112,7 @@ export class Client implements ArgusClientInterface {
             continue;
           }
 
-          if (!Image.isUpdatedImage(currentImage['Id'], latestImage['Id'])) {
+          if (!Image.isUpdatedImage(currentImage.Id, latestImage.Id)) {
             const newConfig: ContainerCreateOptions = Container.newContainerConfig(
               containerInspect,
               latestImage.RepoTags[0]
@@ -109,6 +129,7 @@ export class Client implements ArgusClientInterface {
       }
       console.log(chalk.green(`${count} containers updated.`), `\n\n\n\n`);
     }
+    // Return if single run enabled, perpetual otherwise (wrapped in setInterval)
     if (this.ClientConfig.runOnce) return Promise.resolve();
   }
 }

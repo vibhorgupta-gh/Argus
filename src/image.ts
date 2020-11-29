@@ -64,9 +64,20 @@ export class Image implements ImageClientInterface {
       if (err instanceof TypeError) {
         console.log(`Container already running for the latest image.\n`);
       } else {
-        console.log(chalk.red(`Pull latest image error: ${err}`));
+        console.log(chalk.red(`Pull latest image error: ${err}`), `\n`);
       }
       return;
+    }
+  }
+
+  async remove(image: ImageInspectInfo): Promise<void> {
+    try {
+      const imageName: string = image.RepoTags[image.RepoTags.length - 1];
+      const imageObject: ImageInterface = await this.client.getImage(imageName);
+      await imageObject.remove();
+      console.log(chalk.cyan(`Removed image ${imageName}`));
+    } catch (err) {
+      console.log(chalk.red(`remove image error: ${err}`));
     }
   }
 

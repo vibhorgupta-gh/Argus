@@ -2,7 +2,7 @@ import { Arguments, ConfigInterface } from './interfaces';
 
 export class Config implements ConfigInterface {
   runOnce: boolean;
-  cleanImages: boolean;
+  cleanImage: boolean;
   dockerHost: string | undefined;
   watchInterval: number | undefined;
   containersToMonitor: string[] | undefined;
@@ -20,7 +20,7 @@ export class Config implements ConfigInterface {
       ? parseContainersToMonitorInput(monitor)
       : [];
     this.runOnce = runonce;
-    this.cleanImages = cleanup;
+    this.cleanImage = cleanup;
     this.dockerHost = host;
     this.watchInterval = interval;
     this.containersToMonitor = toMonitor;

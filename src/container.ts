@@ -30,7 +30,7 @@ export class Container implements ContainerClientInterface {
   static async start(container: ContainerInterface): Promise<void> {
     try {
       await container.start();
-      console.log(chalk.cyan(`Started container ${container['id']}`));
+      console.log(chalk.cyan(`Started container ${container.id}`));
     } catch (err) {
       console.log(chalk.red(`start container error: ${err}`));
     }
@@ -39,7 +39,7 @@ export class Container implements ContainerClientInterface {
   static async stop(container: ContainerInterface): Promise<void> {
     try {
       await container.stop();
-      console.log(chalk.cyan(`Stopped container ${container['id']}`));
+      console.log(chalk.cyan(`Stopped container ${container.id}`));
     } catch (err) {
       console.log(chalk.red(`stop container error: ${err}`));
     }
@@ -48,7 +48,7 @@ export class Container implements ContainerClientInterface {
   static async remove(container: ContainerInterface): Promise<void> {
     try {
       await container.remove();
-      console.log(chalk.cyan(`Removed container ${container['id']}`));
+      console.log(chalk.cyan(`Removed container ${container.id}`));
     } catch (err) {
       console.log(chalk.red(`remove container error: ${err}`));
     }
@@ -104,13 +104,13 @@ export class Container implements ContainerClientInterface {
     newImage: string
   ): ContainerCreateOptions {
     const config: ContainerCreateOptions = {
-      name: oldContainer['Name'].replace('/', ''),
+      name: oldContainer.Name.replace('/', ''),
       Image: newImage,
-      Cmd: oldContainer['Config']['Cmd'],
-      HostConfig: oldContainer['HostConfig'],
-      Labels: oldContainer['Config']['Labels'],
-      Entrypoint: oldContainer['Config']['Entrypoint'],
-      Env: oldContainer['Config']['Env'],
+      Cmd: oldContainer.Config.Cmd,
+      HostConfig: oldContainer.HostConfig,
+      Labels: oldContainer.Config.Labels,
+      Entrypoint: oldContainer.Config.Entrypoint,
+      Env: oldContainer.Config.Env,
     };
     return config;
   }

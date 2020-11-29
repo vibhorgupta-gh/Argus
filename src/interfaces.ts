@@ -18,7 +18,7 @@ export interface Arguments {
 
 export interface ConfigInterface {
   runOnce: boolean;
-  cleanImages: boolean;
+  cleanImage: boolean;
   dockerHost: string | undefined;
   watchInterval: number | undefined;
   containersToMonitor: string[] | undefined;
@@ -44,6 +44,7 @@ export interface ImageClientInterface {
   pullLatestImage(
     image: ImageInspectInfo
   ): Promise<ImageInspectInfo | undefined>;
+  remove(image: ImageInspectInfo): Promise<void>;
 }
 
 export interface ArgusClientInterface {
