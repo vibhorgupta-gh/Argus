@@ -72,6 +72,7 @@ export class Image implements ImageClientInterface {
 
   async remove(image: ImageInspectInfo): Promise<void> {
     try {
+      // TODO: Delete by id? (Docker engine supports, but dockerode API might not)
       const imageName: string = image.RepoTags[image.RepoTags.length - 1];
       const imageObject: ImageInterface = await this.client.getImage(imageName);
       await imageObject.remove();

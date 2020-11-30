@@ -1,4 +1,5 @@
 import {
+  DockerOptions,
   Container as ContainerInterface,
   ContainerInspectInfo,
   ContainerCreateOptions,
@@ -6,7 +7,9 @@ import {
   ImageInfo,
 } from 'dockerode';
 
-export interface Arguments {
+export type DockerInitOptions = DockerOptions;
+
+export interface CliArgumentsInterface {
   [x: string]: unknown;
   runonce: boolean;
   cleanup: boolean;
@@ -22,6 +25,7 @@ export interface ConfigInterface {
   dockerHost: string | undefined;
   watchInterval: number | undefined;
   containersToMonitor: string[] | undefined;
+  extractDockerConfig(): DockerInitOptions;
 }
 
 export interface RunningContainerInfo {

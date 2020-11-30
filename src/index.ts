@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import process from 'process';
 import Docker from 'dockerode';
 import yargs = require('yargs/yargs');
 import figlet from 'figlet';
@@ -8,14 +9,15 @@ import { Image } from './image';
 import { Container } from './container';
 import { Client } from './client';
 import {
-  Arguments,
+  CliArgumentsInterface,
   ConfigInterface,
+  DockerInitOptions,
   ContainerClientInterface,
   ImageClientInterface,
 } from './interfaces';
 import { Config } from './config';
 
-const argv: Arguments = yargs(process.argv.slice(2))
+const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
   .option('runonce', {
     alias: 'r',
     description: 'Run Argus once and exit',
@@ -30,9 +32,10 @@ const argv: Arguments = yargs(process.argv.slice(2))
   })
   .option('host', {
     alias: 'u',
-    description: 'Url for tcp host. Defaults to "unix://var/run/docker.sock',
+    description:
+      'Url for tcp host. Defaults to local socket -> unix://var/run/docker.sock',
     type: 'string',
-    default: 'unix://var/run/docker.sock',
+    default: '/var/run/docker.sock',
   })
   .option('interval', {
     alias: 'i',
@@ -53,10 +56,22 @@ const argv: Arguments = yargs(process.argv.slice(2))
 
 // Set configs and clients
 const ClientConfig: ConfigInterface = new Config(argv);
-const DockerClient = new Docker();
+
+// Initialize docker client
+let DockerClient: any;
+try {
+  const dockerOptions: DockerInitOptions = ClientConfig.extractDockerConfig();
+  DockerClient = new Docker(dockerOptions);
+} catch (e) {
+  console.error(e);
+  process.exit(1);
+}
+
+// Initialize container and image clients
 const ContainerClient: ContainerClientInterface = new Container(DockerClient);
 const ImageClient: ImageClientInterface = new Image(DockerClient);
 
+// Initialize executor client
 const Argus = new Client(
   DockerClient,
   ContainerClient,
