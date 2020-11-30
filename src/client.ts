@@ -10,6 +10,7 @@ import {
   ContainerClientInterface,
   ImageClientInterface,
   ArgusClientInterface,
+  PullAuthInterface,
 } from './interfaces';
 import { Image } from './image';
 import { Container } from './container';
@@ -84,7 +85,17 @@ export class Client implements ArgusClientInterface {
               chalk.yellow('Pulling latest image from registry...'),
               `\n`
             );
-            latestImage = await this.ImageClient.pullLatestImage(currentImage);
+            let pullAuthCredentials: PullAuthInterface | undefined;
+            if (this.ClientConfig.repoUser && this.ClientConfig.repoPass) {
+              pullAuthCredentials = {
+                username: this.ClientConfig.repoUser,
+                password: this.ClientConfig.repoPass,
+              };
+            }
+            latestImage = await this.ImageClient.pullLatestImage(
+              currentImage,
+              pullAuthCredentials
+            );
 
             // Old image cleanup commences if container runs on outdated image (and a newer image is obtained above)
             if (latestImage && this.ClientConfig.cleanImage) {

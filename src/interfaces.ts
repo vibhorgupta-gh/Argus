@@ -1,4 +1,5 @@
 import {
+  DockerOptions,
   Container as ContainerInterface,
   ContainerInspectInfo,
   ContainerCreateOptions,
@@ -6,13 +7,17 @@ import {
   ImageInfo,
 } from 'dockerode';
 
-export interface Arguments {
+export type DockerInitOptions = DockerOptions;
+
+export interface CliArgumentsInterface {
   [x: string]: unknown;
   runonce: boolean;
   cleanup: boolean;
   host: string | undefined;
   interval: number | undefined;
-  monitor: string | undefined;
+  monitor: string | null;
+  user: string | null;
+  pass: string | null;
   $0: string;
 }
 
@@ -21,12 +26,10 @@ export interface ConfigInterface {
   cleanImage: boolean;
   dockerHost: string | undefined;
   watchInterval: number | undefined;
-  containersToMonitor: string[] | undefined;
-}
-
-export interface RunningContainerInfo {
-  inspectObject?: ContainerInspectInfo;
-  interfaceObject?: ContainerInterface;
+  containersToMonitor: string[] | null;
+  repoUser: string | null;
+  repoPass: string | null;
+  extractDockerConfig(): DockerInitOptions;
 }
 
 export interface ContainerClientInterface {
@@ -42,7 +45,8 @@ export interface ImageClientInterface {
   listAll(): Promise<ImageInfo[] | undefined>;
   inspect(name: string): Promise<ImageInspectInfo | undefined>;
   pullLatestImage(
-    image: ImageInspectInfo
+    image: ImageInspectInfo,
+    pullAuthCredentials: PullAuthInterface | undefined
   ): Promise<ImageInspectInfo | undefined>;
   remove(image: ImageInspectInfo): Promise<void>;
 }
@@ -53,4 +57,17 @@ export interface ArgusClientInterface {
   ImageClient: ImageClientInterface;
   ClientConfig: ConfigInterface;
   execute(): Promise<void>;
+}
+
+export interface RunningContainerInfo {
+  inspectObject?: ContainerInspectInfo;
+  interfaceObject?: ContainerInterface;
+}
+
+export interface PullAuthInterface {
+  username: string;
+  password: string;
+  auth?: string;
+  email?: string;
+  serveraddress?: string;
 }
