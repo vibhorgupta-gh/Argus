@@ -34,6 +34,13 @@ export class Config implements ConfigInterface {
     this.repoPass = pass || process.env.REPO_PASS;
   }
 
+  /**
+   *  Return config object to initialize Docker Client according to available host
+   *
+   * @return {*}  {DockerInitOptions}
+   * @memberof Config
+   * @return {DockerInitOptions}
+   */
   extractDockerConfig(): DockerInitOptions {
     const isValidUri: boolean = checkValidTCPUri(this.dockerHost);
     const dockerConfig: DockerInitOptions = isValidUri
@@ -43,12 +50,24 @@ export class Config implements ConfigInterface {
   }
 }
 
+/**
+ * Model container names string (passed via CLI options) to array of names
+ *
+ * @param {(string | undefined)} containerstoMonitor
+ * @return {(string[] | undefined)}
+ */
 function parseContainersToMonitorInput(
   containerstoMonitor: string | undefined
 ): string[] | undefined {
   return containerstoMonitor.split(',');
 }
 
+/**
+ * Checks whether user specified URI is a valid TCP URI
+ *
+ * @param {string} hostUri
+ * @return {boolean}
+ */
 function checkValidTCPUri(hostUri: string): boolean {
   const regexForValidTCP = new RegExp(
     '^(?:tcp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\\.)+(?:[A-Z]{2,6}\\.?|[A-Z0-9-]{2,}\\.?)|localhost|\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})(?::\\d+)?(?:/?|[/?]\\S+)$'
