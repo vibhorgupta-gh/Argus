@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import process from 'process';
 import Docker from 'dockerode';
 import yargs = require('yargs/yargs');
 import figlet from 'figlet';
@@ -48,6 +47,20 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     alias: 'm',
     description:
       'Specify containers (by name) to monitor. Defaults to all containers',
+    type: 'string',
+    default: null,
+  })
+  .option('user', {
+    alias: 'u',
+    description:
+      'Username for private image registry. Defaults to Docker Hub if not specified',
+    type: 'string',
+    default: null,
+  })
+  .option('pass', {
+    alias: 'p',
+    description:
+      'Password for private image registry. Defaults to Docker Hub if not specified',
     type: 'string',
     default: null,
   })

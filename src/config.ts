@@ -9,7 +9,9 @@ export class Config implements ConfigInterface {
   cleanImage: boolean;
   dockerHost: string | undefined;
   watchInterval: number | undefined;
-  containersToMonitor: string[] | undefined;
+  containersToMonitor: string[] | null;
+  repoUser: string | null;
+  repoPass: string | null;
 
   constructor({
     runonce,
@@ -17,6 +19,8 @@ export class Config implements ConfigInterface {
     host,
     interval,
     monitor,
+    user,
+    pass,
   }: CliArgumentsInterface) {
     const toMonitor: string[] | undefined = monitor
       ? parseContainersToMonitorInput(monitor)
@@ -26,6 +30,8 @@ export class Config implements ConfigInterface {
     this.dockerHost = host;
     this.watchInterval = interval;
     this.containersToMonitor = toMonitor;
+    this.repoUser = user || process.env.REPO_USER;
+    this.repoPass = pass || process.env.REPO_PASS;
   }
 
   extractDockerConfig(): DockerInitOptions {
