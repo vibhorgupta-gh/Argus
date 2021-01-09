@@ -1,0 +1,13 @@
+logs
+*.log
+pids
+*.pid
+*.seed
+lib-cov
+coverage
+node_modules
+.vscode
+yarn-error.log
+.eslintrc.json
+.prettierrc.yaml
+.dist

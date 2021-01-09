@@ -39,22 +39,28 @@ export class Client implements ArgusClientInterface {
       | RunningContainerInfo[]
       | undefined = await this.ContainerClient.getRunningContainers();
 
-    if (runningContainers.length == 0) {
+    if (runningContainers && !runningContainers.length) {
       console.log(`\n`, chalk.yellow('No running containers'), `\n\n`);
     } else {
       let count = 0;
-      const containersToMonitor = Container.getRunningContainersToMonitor(
-        runningContainers,
-        this.ClientConfig.containersToMonitor
-      );
-
-      if (containersToMonitor.length == 0) {
-        console.log(
-          chalk.yellow(
-            'No running containers with provided names! Please specify valid names.'
-          ),
-          `\n\n`
+      let containersToMonitor: RunningContainerInfo[] | undefined = [];
+      try {
+        containersToMonitor = Container.getRunningContainersToMonitor(
+          runningContainers,
+          this.ClientConfig.containersToMonitor,
+          this.ClientConfig.containersToIgnore
         );
+      } catch {
+        console.log(
+          chalk.red(
+            `Containers to monitor intersect with containers to ignore!\nPlease try again with no overlaps.`
+          ),
+          `\n`
+        );
+        return Promise.resolve();
+      }
+      if (containersToMonitor.length == 0) {
+        console.log(chalk.yellow('No running containers to monitor.'), `\n\n`);
       } else {
         // Non empty array of containers to be monitored
         for (const containerObject of containersToMonitor) {

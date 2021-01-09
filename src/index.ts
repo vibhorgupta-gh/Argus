@@ -50,6 +50,12 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     type: 'string',
     default: null,
   })
+  .option('ignore', {
+    alias: 'ig',
+    description: 'Specify containers (by name) to ignore. Defaults to none',
+    type: 'string',
+    default: null,
+  })
   .option('user', {
     alias: 'u',
     description:
