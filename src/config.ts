@@ -10,6 +10,7 @@ export class Config implements ConfigInterface {
   dockerHost: string | undefined;
   watchInterval: number | undefined;
   containersToMonitor: string[] | null;
+  containersToIgnore: string[] | null;
   repoUser: string | null;
   repoPass: string | null;
 
@@ -19,17 +20,22 @@ export class Config implements ConfigInterface {
     host,
     interval,
     monitor,
+    ignore,
     user,
     pass,
   }: CliArgumentsInterface) {
     const toMonitor: string[] | undefined = monitor
-      ? parseContainersToMonitorInput(monitor)
+      ? parseContainersToFilterInput(monitor)
+      : [];
+    const toIgnore: string[] | undefined = ignore
+      ? parseContainersToFilterInput(ignore)
       : [];
     this.runOnce = runonce;
     this.cleanImage = cleanup;
     this.dockerHost = host;
     this.watchInterval = interval;
     this.containersToMonitor = toMonitor;
+    this.containersToIgnore = toIgnore;
     this.repoUser = user || process.env.REPO_USER;
     this.repoPass = pass || process.env.REPO_PASS;
   }
@@ -56,10 +62,10 @@ export class Config implements ConfigInterface {
  * @param {(string | undefined)} containerstoMonitor
  * @return {(string[] | undefined)}
  */
-function parseContainersToMonitorInput(
-  containerstoMonitor: string | undefined
+function parseContainersToFilterInput(
+  containerstoFilter: string | undefined
 ): string[] | undefined {
-  return containerstoMonitor.split(',');
+  return containerstoFilter.split(',');
 }
 
 /**

@@ -16,6 +16,7 @@ export interface CliArgumentsInterface {
   host: string | undefined;
   interval: number | undefined;
   monitor: string | null;
+  ignore: string | null;
   user: string | null;
   pass: string | null;
   $0: string;
@@ -27,6 +28,7 @@ export interface ConfigInterface {
   dockerHost: string | undefined;
   watchInterval: number | undefined;
   containersToMonitor: string[] | null;
+  containersToIgnore: string[] | null;
   repoUser: string | null;
   repoPass: string | null;
   extractDockerConfig(): DockerInitOptions;

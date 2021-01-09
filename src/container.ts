@@ -129,21 +129,46 @@ export class Container implements ContainerClientInterface {
    *
    * @static
    * @param {(RunningContainerInfo[] | undefined)} containers - All running containers
-   * @param {(string[] | undefined)} containerNames - List of user specified container names to be monitored
+   * @param {(string[] | undefined)} containerNamesToMonitor - List of user specified container names to be monitored
+   * @param {(string[] | undefined)} containerNamesToIgnore - List of user specified container names to be monitored
    * @return {(RunningContainerInfo[] | undefined)}
    * @memberof Container
    */
   static getRunningContainersToMonitor(
     containers: RunningContainerInfo[] | undefined,
-    containerNames: string[] | undefined
+    containerNamesToMonitor: string[] | undefined,
+    containerNamesToIgnore: string[] | undefined
   ): RunningContainerInfo[] | undefined {
-    if (containerNames.length == 0) {
+    if (!containerNamesToMonitor.length && !containerNamesToIgnore.length) {
       return containers;
+    } else if (
+      containerNamesToMonitor.length &&
+      containerNamesToIgnore.length
+    ) {
+      const intersection:
+        | string[]
+        | undefined = containerNamesToMonitor.filter((containerName) =>
+        containerNamesToIgnore.includes(containerName)
+      );
+      if (intersection.length) throw new Error();
     }
+
     let containersToMonitor: RunningContainerInfo[] | undefined = [];
-    containersToMonitor = containers.filter((container) =>
-      containerNames.includes(container.inspectObject?.Name.substring(1))
-    );
+    if (containerNamesToMonitor.length) {
+      containersToMonitor = containers.filter((container) =>
+        containerNamesToMonitor.includes(
+          container.inspectObject?.Name.substring(1)
+        )
+      );
+    }
+    if (containerNamesToIgnore.length) {
+      containersToMonitor = (containersToMonitor || containers).filter(
+        (container) =>
+          !containerNamesToIgnore.includes(
+            container.inspectObject?.Name.substring(1)
+          )
+      );
+    }
     return containersToMonitor;
   }
 
