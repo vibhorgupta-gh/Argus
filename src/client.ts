@@ -39,7 +39,7 @@ export class Client implements ArgusClientInterface {
       | RunningContainerInfo[]
       | undefined = await this.ContainerClient.getRunningContainers();
 
-    if (runningContainers.length == 0) {
+    if (runningContainers && !runningContainers.length) {
       console.log(`\n`, chalk.yellow('No running containers'), `\n\n`);
     } else {
       let count = 0;

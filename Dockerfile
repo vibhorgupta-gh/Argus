@@ -8,4 +8,4 @@ RUN yarn install
 RUN yarn global add typescript tsc
 
 COPY . .
-ENTRYPOINT [ "yarn", "dev" ]
+ENTRYPOINT [ "yarn", "start" ]

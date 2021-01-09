@@ -10,9 +10,8 @@
     "dev:watch": "nodemon --quiet --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
     "dev": "ts-node src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
-    "lint": "eslint . --ext .ts",
-    "test": "jest"
+    "start": "tsc && node dist/index.js",
+    "lint": "eslint . --ext .ts"
   },
   "dependencies": {
     "@types/dockerode": "^2.5.34",
