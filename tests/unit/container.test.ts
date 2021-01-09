@@ -1,4 +1,4 @@
-import { Container } from '../../container';
+import { Container } from '../../src/container';
 import { dummy_container } from '../resources/dummy_container';
 import { dummy_info } from '../resources/dummy_info';
 import { dummy_container_responses } from '../resources/dummy_container_response';

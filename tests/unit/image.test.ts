@@ -1,4 +1,4 @@
-import { Image } from '../../image';
+import { Image } from '../../src/image';
 import { dummy_images } from '../resources/dummy_images';
 import {
   dummy_inspect_response,
@@ -6,7 +6,7 @@ import {
 } from '../resources/dummy_inspect';
 
 describe('Image Client', () => {
-  let imageData = dummy_inspect_response;
+  const imageData = dummy_inspect_response;
   const MockDockerClient = {
     listImages: () =>
       new Promise((resolve, reject) => {
@@ -20,7 +20,21 @@ describe('Image Client', () => {
       return undefined;
     },
     pull: (name: string) => {
-      if (name === 'example:latest') imageData = dummy_updated_inspect_response;
+      const modem = {
+        followProgress: () => {
+          return new Promise((resolve, reject) => {
+            resolve({
+              inspect: () => new Promise((res, rej) => res(imageData)),
+            });
+          });
+        },
+      };
+      if (name === 'example:latest') {
+        return new Promise((resolve, reject) => {
+          resolve(modem.followProgress);
+        });
+      }
+      return undefined;
     },
   };
   const ImageClient = new Image(MockDockerClient);
@@ -39,10 +53,13 @@ describe('Image Client', () => {
   });
 
   test('pull latest image', async () => {
-    expect.assertions(1);
-    const latestImageInfo = await ImageClient.pullLatestImage(imageInfo);
+    expect.assertions(3);
+    const latestImageInfo = await ImageClient.pullLatestImage(
+      imageInfo,
+      undefined
+    );
     expect(latestImageInfo).toEqual(dummy_updated_inspect_response);
-  }, 7000);
+  }, 8000);
 
   describe('isUpdated', () => {
     test('when inputs match', () => {
