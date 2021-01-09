@@ -1,11 +1,15 @@
 # Argus
 
-## About the Project
+![Argus](https://socialify.git.ci/VibhorCodecianGupta/Argus/image?description=1&language=1&pattern=Circuit%20Board&stargazers=1&theme=Light)
 
-### Overview and Intent
+---
+
+## Overview and Intent
+
+A TypeScript-based alternative to [watchtower](https://github.com/v2tec/watchtower)
 
 **Argus automatically updates your running Docker containers to the latest available image.**
-The problem with image and container management manually, especially in an environment where containers are running across servers and could need frequent updations due to latest images being pushed to the registry, is the plethora of tedious docker CLI commands required to run an updated container:
+The problem with managing docker images and containers manually, especially in an environment where containers are running across servers and need frequent updates due to constant images updates to the registry, is a series of CLI commands needed to update and rerun a container which quickly gets tiresome:
 
 ```
 docker stop ...
@@ -14,25 +18,147 @@ docker pull ...
 docker run ...
 ```
 
-If you wish to cleanup redundant images, again `docker rmi -f`.
+Additionally, if you wish to cleanup redundant images, again `docker rmi -f ...`.
 
-### What it does
+Argus automates the job of updating Docker containers in favour of latest images available in an image registry. Assuming a developer is publishing new versions of a Docker image frequently for an application that resides in containers deployed on local/remote servers, the dev needs a way to propogate the image update to these containers. Traditionally, after SSHing in the remote machine the dev has to stop the existing container, pull the latest image as base, and restart the container. The entire process requires running a series of commands that get tedious, quick.
 
-Argus automates the process of updating the Docker container on the basis of the latest image available image locally or in your image registry. Let's assume the developer is publishing new versions of a Docker image consistently for an application that is deployed and running in Docker containers on the local/remote servers. In this case, the developer needs a way to propogate this image change to somehow the remote servers, but that's not all. Even after secure shell access into these servers, the developer needs to stop the existing container, docker pull the latest image and start the container with original configs and the new image as the base image within the server shell. This requires multiple (and often tedious) docker commands on the CLI. Moreover, if they wish to cleanup the out of date images and containers from the server, running pruning commands takes even more commands.
+Automating the process of watching your containers, looking for latest images on a remote registry, exiting the running container, pulling the latest image and running a new container with the updated base ensures keeping up to date with newer, stable versions.
 
-Argus provides a solution to this predicament by automating the process of watching your containers, finding the underlying latest images (if any) locally and on a remote registry, gracefully quitting the running container, running a docker pull and thereafter creating and running a new container with the updated base image. This ensures that the service will keep track of new versions and will automatically update dockerized environments, remote servers in this context.
+---
 
-### Tech Stack
+## Usage
 
+`Argus` is deployed via docker image like so:
+
+```bash
+docker run -d --name argus \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus
+```
+
+- Remove the `-d` flag to run in foreground
+- By default, running containers are polled every 300 seconds
+
+### Options
+
+All arguments can be used together without conflicts with the exception of `-u` and `-p`.
+
+```
+docker run --rm whaleit/argus --help
+```
+
+- `--host`, `-u`: Monitor and update containers on a remote system by providing its `host`. Defaults to `/var/run/docker.sock`
+- `--interval`, `-i`: Change interval b/w Argus checking the remote docker registry for image updates (in seconds). Defaults to `300`
+- `--monitor`, `-m`: Only monitor select containers by names. Defaults to all containers.
+- `--ignore`, `-ig`: Ignore only select containers by names. Defaults to none.
+- `--runonce`, `-r`: Update all running containers once and terminate. Defaults to `false`.
+- `--cleanup`, `-c`: Remove the older base image if a new one is found and updated. Defaults to `false`.
+- `--user`, `-u`: Specify username for private image registry. Defaults to `null`.
+- `--password`, `-p`: Specify password for private image registry. Defaults to `null`.
+
+`-u` and `-p` flags are to be used in conjunction as credentials in case of private image registry.
+
+---
+
+## Examples
+
+### Update containers on a remote host
+
+Argus can monitor things other than just local, pass the `--host` argument to update a system with the Docker API exposed.
+
+Defaults to `/var/run/docker.sock`
+
+```bash
+docker run -d --name argus \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus --host='tcp://some-remote-docker-server:2375'
+```
+
+### Change update interval
+
+An `interval` argument can be supplied to change interval b/w argus checking the remote docker registry for image updates (in seconds).
+
+Defaults to `300` seconds
+
+```bash
+docker run -d --name argus \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus --interval=900
+```
+
+### Monitor select containers
+
+Argus monitors all running docker containers, but can be overridden to only monitor select containers by passing `monitor` supplied with container names.
+
+Defaults to all containers
+
+```bash
+docker run -d --name argus \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus --monitor='containerA','containerB','containerC'
+```
+
+### Ignore select containers
+
+Argus monitors all running docker containers, but can be overridden to ignore select containers by passing `ignore` supplied with container names.
+
+Defaults to none
+
+```bash
+docker run -d --name argus \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus --ignore='containerA','containerB'
+```
+
+### Update all containers once and quit
+
+If you prefer Argus didn't run all the time and only update running containers once and exit, use the `runonce` argument and Argus terminates after updating all containers once.
+
+Defaults to `false`
+
+```bash
+docker run -d --name argus \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus --runonce=true
+```
+
+### Remove old docker images
+
+Argus has the option to remove the outdated base image if a new one is found and the container is updated. To clean up after updates, pass the `cleanup` argument.
+
+Defaults to `false`
+
+```bash
+docker run -d --name argus \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus --cleanup=true
+```
+
+### Private Registries
+
+If base images to running containers are stored in a secure registry that requires credentials, you can run Argus with 2 arguments `--user` and `--password`.
+
+```bash
+docker run -d --name argus \
+  --user=myUser --password=myPassword \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus
+```
+
+---
+
+## Development
+
+### Under the hood
+
+- [Docker SDK](https://github.com/apocas/dockerode)
 - [Typescript](https://www.typescriptlang.org/)
 - [Jest](https://jestjs.io/)
 - [Yarn](https://classic.yarnpkg.com/en/docs/)
 
-### Getting Started :zap:
+### Installation
 
 Ensure you have the Docker engine installed and running. To setup a local copy, follow these simple steps.
-
-### Installation
 
 ```
 npm i -g typescript
@@ -53,28 +179,18 @@ yarn run start
 yarn run dev
 ```
 
-### Running test suites
-
-```
-yarn run test
-```
+---
 
 ## Contributing
 
-Any and all contributions are welcome!
+Any and all contributions are welcome. You can check out Issue tracker and ongoing projects to look for existing issues and start contributing.
+
+Feel free to open issues for any bugs you discover or any feature ideas you have. Do make sure to open an issue before moving to implementation. This ensures sufficient discussion and context to incoming PRs.
 
 1. Fork the Project
 2. Create your feature breanch: `git checkout -b feature-branch`
-3. Commit your Changes: `git commit -m "Add some cool feature"`
+3. Commit your Changes: `git commit -m "Add some feature"`
 4. Push to your fork: `git push origin feature-branch`
 5. Open a Pull Request.
 
-## Future Plans :tada:
-
-1. Create a roadmap for `Argus v1.0.0`
-2. Figure out communication with remote servers
-3. Add customisability to the tool via CLI options
-4. Containerize the tool
-5. Publish as a package
-
-_Note_: You can check out Issue tracker and ongoing projects to look for existing issues and start contributing!
+If you like what you see, leave a star :)
