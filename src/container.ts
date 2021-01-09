@@ -106,6 +106,7 @@ export class Container implements ContainerClientInterface {
       );
 
       for (const c of containers) {
+        if (c.Image.includes('argus')) continue;
         const container: ContainerInterface = await this.client.getContainer(
           c.Id
         );
