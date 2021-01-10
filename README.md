@@ -2,8 +2,6 @@
 
 ![Argus](https://socialify.git.ci/VibhorCodecianGupta/Argus/image?description=1&language=1&pattern=Circuit%20Board&stargazers=1&theme=Light)
 
----
-
 ## Overview and Intent
 
 A TypeScript-based alternative to [watchtower](https://github.com/v2tec/watchtower)
@@ -28,7 +26,15 @@ Automating the process of watching your containers, looking for latest images on
 
 ## Usage
 
-`Argus` is deployed via docker image like so:
+**NPM package**
+
+`Argus` is available in the npm registry as a package. To use:
+
+`yarn global add argus-docker` or `npm i -g argus-docker`
+
+**Docker Image**
+
+`Argus` is also deployed via docker image like so:
 
 ```bash
 docker run -d --name argus \
@@ -68,10 +74,18 @@ Argus can monitor things other than just local, pass the `--host` argument to up
 
 Defaults to `/var/run/docker.sock`
 
+1. Running the docker image
+
 ```bash
 docker run -d --name argus \
   -v /var/run/docker.sock:/var/run/docker.sock \
   whaleit/argus --host='tcp://some-remote-docker-server:2375'
+```
+
+2. Running the npm package
+
+```bash
+argus --host='tcp://some-remote-docker-server:2375'
 ```
 
 ### Change update interval
@@ -80,10 +94,18 @@ An `interval` argument can be supplied to change interval b/w argus checking the
 
 Defaults to `300` seconds
 
+1. Running the docker image
+
 ```bash
 docker run -d --name argus \
   -v /var/run/docker.sock:/var/run/docker.sock \
   whaleit/argus --interval=900
+```
+
+2. Running the npm package
+
+```bash
+argus --interval=900
 ```
 
 ### Monitor select containers
@@ -92,10 +114,18 @@ Argus monitors all running docker containers, but can be overridden to only moni
 
 Defaults to all containers
 
+1. Running the docker image
+
 ```bash
 docker run -d --name argus \
   -v /var/run/docker.sock:/var/run/docker.sock \
   whaleit/argus --monitor='containerA','containerB','containerC'
+```
+
+2. Running the npm package
+
+```bash
+argus --monitor='containerA','containerB','containerC'
 ```
 
 ### Ignore select containers
@@ -104,10 +134,18 @@ Argus monitors all running docker containers, but can be overridden to ignore se
 
 Defaults to none
 
+1. Running the docker image
+
 ```bash
 docker run -d --name argus \
   -v /var/run/docker.sock:/var/run/docker.sock \
   whaleit/argus --ignore='containerA','containerB'
+```
+
+2. Running the npm package
+
+```bash
+argus --ignore='containerA','containerB'
 ```
 
 ### Update all containers once and quit
@@ -116,10 +154,18 @@ If you prefer Argus didn't run all the time and only update running containers o
 
 Defaults to `false`
 
+1. Running the docker image
+
 ```bash
 docker run -d --name argus \
   -v /var/run/docker.sock:/var/run/docker.sock \
   whaleit/argus --runonce=true
+```
+
+2. Running the npm package
+
+```bash
+argus --runonce=true
 ```
 
 ### Remove old docker images
@@ -128,21 +174,43 @@ Argus has the option to remove the outdated base image if a new one is found and
 
 Defaults to `false`
 
+1. Running the docker image
+
 ```bash
 docker run -d --name argus \
   -v /var/run/docker.sock:/var/run/docker.sock \
   whaleit/argus --cleanup=true
 ```
 
+2. Running the npm package
+
+```bash
+argus --cleanup=true
+```
+
 ### Private Registries
 
 If base images to running containers are stored in a secure registry that requires credentials, you can run Argus with 2 arguments `--user` and `--password`.
 
+1. Running the docker image
+
 ```bash
 docker run -d --name argus \
-  --user=myUser --password=myPassword \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  whaleit/argus
+  whaleit/argus --user='myUser' --password='myPassword'
+```
+
+2. Running the npm package
+
+```bash
+argus --user='myUser' --password='myPassword'
+```
+
+Credentials can also be passed via environment variables. Set the environment vars in your command line environment prior to running Argus like so:
+
+```bash
+export REPO_USER=myUser
+export REPO_PASS=myPassword
 ```
 
 ---

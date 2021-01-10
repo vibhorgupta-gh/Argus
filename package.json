@@ -1,11 +1,14 @@
 {
   "name": "argus-docker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Automate container quit and rerun as the base image updates",
   "main": "index.js",
   "repository": "https://github.com/VibhorCodecianGupta/Argus.git",
   "homepage": "https://github.com/VibhorCodecianGupta/Argus",
   "bugs": "https://github.com/VibhorCodecianGupta/Argus/issues",
+  "bin": {
+    "argus": "./dist/index.js"
+  },
   "author": "VibhorCodecianGupta <vibhordelgupta@gmail.com>",
   "keywords": [
     "docker",
@@ -20,6 +23,8 @@
     "dev": "ts-node src/index.ts",
     "build": "tsc",
     "start": "yarn build && node dist/index.js",
+    "local": "sudo yarn global add && argus",
+    "refresh": "rm -rf ./node_modules ./package-lock.json ./yarn.lock && yarn install",
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
