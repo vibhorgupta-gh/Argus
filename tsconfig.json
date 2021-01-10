@@ -4,7 +4,9 @@
     "target": "es6",
     "module": "commonjs",
     "outDir": "dist",
+    "rootDir": "src",
     "strict": false,
+    "types": ["node"],
     "noImplicitAny": true,
     "moduleResolution": "node",
     "baseUrl": "./",
@@ -12,7 +14,9 @@
       "*": ["node_modules/*", "src/types/*"]
     },
     "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts"]

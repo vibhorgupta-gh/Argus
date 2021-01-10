@@ -1,6 +1,6 @@
 {
   "name": "argus-docker",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Automate container quit and rerun as the base image updates",
   "main": "./dist/index.js",
   "repository": "https://github.com/VibhorCodecianGupta/Argus.git",
@@ -17,6 +17,10 @@
     "automation",
     "docker pull"
   ],
+  "files": [
+    "dist/*.js",
+    "src/*.ts"
+  ],
   "license": "MIT",
   "scripts": {
     "dev:watch": "nodemon --quiet --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
@@ -30,9 +34,7 @@
   "dependencies": {
     "@types/dockerode": "^2.5.34",
     "dockerode": "^3.2.1",
-    "winston": "^3.3.3"
-  },
-  "devDependencies": {
+    "winston": "^3.3.3",
     "@babel/preset-env": "^7.11.5",
     "@tsconfig/node12": "^1.0.7",
     "@types/figlet": "^1.2.0",
