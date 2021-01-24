@@ -1,3 +1,5 @@
+import { SendMailOptions } from 'nodemailer';
+import { SmtpOptions } from 'nodemailer-smtp-transport';
 import {
   CliArgumentsInterface,
   ConfigInterface,
@@ -13,6 +15,8 @@ export class Config implements ConfigInterface {
   containersToIgnore: string[] | null;
   repoUser: string | null;
   repoPass: string | null;
+  emailConfig?: SmtpOptions;
+  emailOptions?: SendMailOptions;
 
   constructor({
     runonce,
@@ -23,6 +27,12 @@ export class Config implements ConfigInterface {
     ignore,
     user,
     pass,
+    smtpHost,
+    smtpPort,
+    smtpUsername,
+    smtpPassword,
+    smtpSender,
+    smtpRecipients,
   }: CliArgumentsInterface) {
     const toMonitor: string[] | undefined = monitor
       ? parseContainersToFilterInput(monitor)
@@ -38,6 +48,22 @@ export class Config implements ConfigInterface {
     this.containersToIgnore = toIgnore;
     this.repoUser = user || process.env.REPO_USER;
     this.repoPass = pass || process.env.REPO_PASS;
+    this.emailConfig = {
+      host: smtpHost || process.env.SMTP_HOST,
+      port: Number(smtpPort || process.env.SMTP_PORT),
+      secure: false,
+      auth: {
+        user: smtpUsername || process.env.SMTP_USER,
+        pass: smtpPassword || process.env.SMTP_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    };
+    this.emailOptions = {
+      from: smtpSender,
+      to: parseEmailRecipients(smtpRecipients),
+    };
   }
 
   /**
@@ -65,7 +91,13 @@ export class Config implements ConfigInterface {
 function parseContainersToFilterInput(
   containerstoFilter: string | undefined
 ): string[] | undefined {
+  if (!containerstoFilter) return undefined;
   return containerstoFilter.split(',');
+}
+
+function parseEmailRecipients(recipients: string | null): string[] | undefined {
+  if (!recipients) return undefined;
+  return recipients.split(',');
 }
 
 /**

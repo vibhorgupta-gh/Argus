@@ -11,27 +11,35 @@ import {
   ImageClientInterface,
   ArgusClientInterface,
   PullAuthInterface,
+  NotificationInterface,
+  DataServiceInterface,
 } from './interfaces';
 import { Image } from './image';
 import { Container } from './container';
 import chalk from 'chalk';
 
 export class Client implements ArgusClientInterface {
+  private ClientConfig: ConfigInterface;
   DockerClient: any;
   ContainerClient: ContainerClientInterface;
   ImageClient: ImageClientInterface;
-  ClientConfig: ConfigInterface;
+  NotificationClient: NotificationInterface;
+  DataClient: DataServiceInterface;
 
   constructor(
     DockerClient: any,
     ContainerClient: ContainerClientInterface,
     ImageClient: ImageClientInterface,
+    NotificationClient: NotificationInterface,
+    DataClient: DataServiceInterface,
     ClientConfig: ConfigInterface
   ) {
     this.DockerClient = DockerClient;
     this.ContainerClient = ContainerClient;
     this.ImageClient = ImageClient;
     this.ClientConfig = ClientConfig;
+    this.NotificationClient = NotificationClient;
+    this.DataClient = DataClient;
   }
 
   async execute(): Promise<void | undefined> {
@@ -49,6 +57,10 @@ export class Client implements ArgusClientInterface {
           runningContainers,
           this.ClientConfig.containersToMonitor,
           this.ClientConfig.containersToIgnore
+        );
+        this.DataClient.monitoredContainers.set(
+          this.ClientConfig.dockerHost,
+          containersToMonitor.length
         );
       } catch {
         console.log(
@@ -129,7 +141,7 @@ export class Client implements ArgusClientInterface {
             continue;
           }
 
-          if (!Image.isUpdatedImage(currentImage.Id, latestImage.Id)) {
+          if (Image.isUpdatedImage(currentImage.Id, latestImage.Id)) {
             const newConfig: ContainerCreateOptions = Container.newContainerConfig(
               containerInspect,
               latestImage.RepoTags[0]
@@ -141,8 +153,28 @@ export class Client implements ArgusClientInterface {
               | undefined = await this.ContainerClient.create(newConfig);
             await Container.start(newContainer);
             count += 1;
+
+            this.DataClient.updatedContainerObjects.push([
+              currentImage,
+              latestImage,
+              containerInspect,
+            ]);
           }
         }
+        this.DataClient.updatedContainers.set(
+          this.ClientConfig.dockerHost,
+          count
+        );
+      }
+      // Send notifications
+      try {
+        await this.NotificationClient.sendNotifications(
+          this.DataClient.monitoredContainers.get(this.ClientConfig.dockerHost),
+          this.DataClient.updatedContainers.get(this.ClientConfig.dockerHost),
+          this.DataClient.updatedContainerObjects
+        );
+      } catch (err) {
+        console.log(chalk.red(`${err.message}`));
       }
       console.log(chalk.green(`${count} containers updated.`), `\n\n\n\n`);
     }

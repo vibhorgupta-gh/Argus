@@ -6,6 +6,8 @@ import figlet from 'figlet';
 import chalk from 'chalk';
 import { Image } from './image';
 import { Container } from './container';
+import { NotificationService } from './notifications';
+import { DataService } from './metrics';
 import { Client } from './client';
 import {
   CliArgumentsInterface,
@@ -13,6 +15,8 @@ import {
   DockerInitOptions,
   ContainerClientInterface,
   ImageClientInterface,
+  NotificationInterface,
+  DataServiceInterface,
 } from './interfaces';
 import { Config } from './config';
 
@@ -70,6 +74,42 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     type: 'string',
     default: null,
   })
+  .option('smtp-host', {
+    alias: 'H',
+    description: 'SMTP relay hostname',
+    type: 'string',
+    default: 'smtp.gmail.com',
+  })
+  .option('smtp-port', {
+    alias: 'I',
+    description: 'SMTP relay port number',
+    type: 'string',
+    default: '587',
+  })
+  .option('smtp-username', {
+    alias: 'U',
+    description: 'SMTP relay username',
+    type: 'string',
+    default: null,
+  })
+  .option('smtp-password', {
+    alias: 'G',
+    description: 'SMTP relay password',
+    type: 'string',
+    default: null,
+  })
+  .option('smtp-sender', {
+    alias: 'j',
+    description: 'SMTP notification sender email account',
+    type: 'string',
+    default: null,
+  })
+  .option('smtp-recipients', {
+    alias: 'J',
+    description: 'Recipents of SMTP notification',
+    type: 'string',
+    default: null,
+  })
   .help()
   .alias('help', 'h').argv;
 
@@ -86,15 +126,21 @@ try {
   process.exit(1);
 }
 
-// Initialize container and image clients
+// Initialize clients
 const ContainerClient: ContainerClientInterface = new Container(DockerClient);
 const ImageClient: ImageClientInterface = new Image(DockerClient);
+const NotificationClient: NotificationInterface = new NotificationService(
+  ClientConfig
+);
+const DataClient: DataServiceInterface = new DataService();
 
 // Initialize executor client
 const Argus = new Client(
   DockerClient,
   ContainerClient,
   ImageClient,
+  NotificationClient,
+  DataClient,
   ClientConfig
 );
 

@@ -6,6 +6,9 @@ import {
   ImageInspectInfo,
   ImageInfo,
 } from 'dockerode';
+import { SendMailOptions, SentMessageInfo } from 'nodemailer';
+import { SmtpOptions } from 'nodemailer-smtp-transport';
+import { DataService } from './metrics';
 
 export type DockerInitOptions = DockerOptions;
 
@@ -20,6 +23,12 @@ export interface CliArgumentsInterface {
   user: string | null;
   pass: string | null;
   $0: string;
+  smtpHost?: string | null;
+  smtpPort?: number | null;
+  smtpUsername?: string | null;
+  smtpPassword?: string | null;
+  smtpSender?: string | null;
+  smtpRecipients?: string | null;
 }
 
 export interface ConfigInterface {
@@ -31,6 +40,8 @@ export interface ConfigInterface {
   containersToIgnore: string[] | null;
   repoUser: string | null;
   repoPass: string | null;
+  emailConfig?: SmtpOptions;
+  emailOptions?: SendMailOptions;
   extractDockerConfig(): DockerInitOptions;
 }
 
@@ -57,7 +68,8 @@ export interface ArgusClientInterface {
   DockerClient: any;
   ContainerClient: ContainerClientInterface;
   ImageClient: ImageClientInterface;
-  ClientConfig: ConfigInterface;
+  NotificationClient: NotificationInterface;
+  DataClient: DataServiceInterface;
   execute(): Promise<void>;
 }
 
@@ -72,4 +84,42 @@ export interface PullAuthInterface {
   auth?: string;
   email?: string;
   serveraddress?: string;
+}
+
+export interface NotificationInterface {
+  emailOpts: SendMailOptions;
+  emailNotifier: EmailServiceInterface;
+  sendNotifications(
+    monitoredContainers: number | undefined,
+    updatedContainers: number | undefined,
+    updatedContainerObjects: [
+      ImageInspectInfo,
+      ImageInspectInfo,
+      ContainerInspectInfo
+    ][]
+  ): Promise<void>;
+}
+
+export interface EmailServiceInterface {
+  emailOptions: SendMailOptions;
+  sendEmail(
+    dockerHost: string | null,
+    monitoredContainers: number | undefined,
+    updatedContainers: number | undefined,
+    updatedContainerObjects: [
+      ImageInspectInfo,
+      ImageInspectInfo,
+      ContainerInspectInfo
+    ][]
+  ): Promise<SentMessageInfo | undefined>;
+}
+
+export interface DataServiceInterface {
+  monitoredContainers: Map<string, number>;
+  updatedContainers: Map<string, number>;
+  updatedContainerObjects: [
+    ImageInspectInfo,
+    ImageInspectInfo,
+    ContainerInspectInfo
+  ][];
 }
