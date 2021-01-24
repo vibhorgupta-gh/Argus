@@ -23,14 +23,14 @@ export class Client implements ArgusClientInterface {
   DockerClient: any;
   ContainerClient: ContainerClientInterface;
   ImageClient: ImageClientInterface;
-  NotificationClient: NotificationInterface;
+  NotificationClient: NotificationInterface | undefined;
   DataClient: DataServiceInterface;
 
   constructor(
     DockerClient: any,
     ContainerClient: ContainerClientInterface,
     ImageClient: ImageClientInterface,
-    NotificationClient: NotificationInterface,
+    NotificationClient: NotificationInterface | undefined,
     DataClient: DataServiceInterface,
     ClientConfig: ConfigInterface
   ) {
@@ -167,14 +167,18 @@ export class Client implements ArgusClientInterface {
         );
       }
       // Send notifications
-      try {
-        await this.NotificationClient.sendNotifications(
-          this.DataClient.monitoredContainers.get(this.ClientConfig.dockerHost),
-          this.DataClient.updatedContainers.get(this.ClientConfig.dockerHost),
-          this.DataClient.updatedContainerObjects
-        );
-      } catch (err) {
-        console.log(chalk.red(`${err.message}`));
+      if (this.NotificationClient) {
+        try {
+          await this.NotificationClient.sendNotifications(
+            this.DataClient.monitoredContainers.get(
+              this.ClientConfig.dockerHost
+            ),
+            this.DataClient.updatedContainers.get(this.ClientConfig.dockerHost),
+            this.DataClient.updatedContainerObjects
+          );
+        } catch (err) {
+          console.log(chalk.red(`${err}`));
+        }
       }
       console.log(chalk.green(`${count} containers updated.`), `\n\n\n\n`);
     }

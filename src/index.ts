@@ -78,13 +78,13 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     alias: 'H',
     description: 'SMTP relay hostname',
     type: 'string',
-    default: 'smtp.gmail.com',
+    default: null,
   })
   .option('smtp-port', {
     alias: 'I',
     description: 'SMTP relay port number',
     type: 'string',
-    default: '587',
+    default: null,
   })
   .option('smtp-username', {
     alias: 'U',
@@ -129,9 +129,15 @@ try {
 // Initialize clients
 const ContainerClient: ContainerClientInterface = new Container(DockerClient);
 const ImageClient: ImageClientInterface = new Image(DockerClient);
-const NotificationClient: NotificationInterface = new NotificationService(
-  ClientConfig
-);
+let NotificationClient: NotificationInterface | undefined;
+
+try {
+  NotificationClient = new NotificationService(ClientConfig);
+} catch (err) {
+  NotificationClient = undefined;
+  console.log(chalk.red(`${err.message}`));
+}
+
 const DataClient: DataServiceInterface = new DataService();
 
 // Initialize executor client

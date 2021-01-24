@@ -21,6 +21,22 @@ export class NotificationService implements NotificationInterface {
 
   constructor(clientConfig: ConfigInterface) {
     this.notificationConfig = clientConfig;
+    if (
+      !this.notificationConfig.emailConfig.host ||
+      !this.notificationConfig.emailConfig.port
+    ) {
+      throw new Error(
+        'Insufficient parameters supplied, please specify SMTP host and port. Disabling SMTP'
+      );
+    }
+    if (
+      !this.notificationConfig.emailOptions.from ||
+      !this.notificationConfig.emailOptions.to
+    ) {
+      throw new Error(
+        'Insufficient parameters supplied, please specify email sender and recipients. Disabling SMTP'
+      );
+    }
     this.transporterConfig = {
       host: this.notificationConfig.emailConfig.host,
       port: this.notificationConfig.emailConfig.port,
@@ -37,14 +53,6 @@ export class NotificationService implements NotificationInterface {
         user: this.notificationConfig.emailConfig.auth.user,
         pass: this.notificationConfig.emailConfig.auth.pass,
       };
-    }
-    if (
-      !this.notificationConfig.emailOptions.from ||
-      !this.notificationConfig.emailOptions.to
-    ) {
-      throw new Error(
-        'Insufficient parameters supplied, please specify sender and recipients. Disabling SMTP'
-      );
     }
     this.emailOpts = {
       from: `Argus <${this.notificationConfig.emailOptions.from}>`,
