@@ -8,7 +8,6 @@ import {
 } from 'dockerode';
 import { SendMailOptions, SentMessageInfo } from 'nodemailer';
 import { SmtpOptions } from 'nodemailer-smtp-transport';
-import { DataService } from './metrics';
 
 export type DockerInitOptions = DockerOptions;
 
@@ -29,6 +28,7 @@ export interface CliArgumentsInterface {
   smtpPassword?: string | null;
   smtpSender?: string | null;
   smtpRecipients?: string | null;
+  webhookUrls?: string | null;
 }
 
 export interface ConfigInterface {
@@ -42,6 +42,7 @@ export interface ConfigInterface {
   repoPass: string | null;
   emailConfig?: SmtpOptions;
   emailOptions?: SendMailOptions;
+  webhookUrls?: string[] | undefined;
   extractDockerConfig(): DockerInitOptions;
 }
 
@@ -88,7 +89,8 @@ export interface PullAuthInterface {
 
 export interface NotificationInterface {
   emailOpts: SendMailOptions;
-  emailNotifier: EmailServiceInterface;
+  emailNotifier: EmailServiceInterface | undefined;
+  webhookNotifier: WebhookInterface | undefined;
   sendNotifications(
     monitoredContainers: number | undefined,
     updatedContainers: number | undefined,
@@ -97,7 +99,7 @@ export interface NotificationInterface {
       ImageInspectInfo,
       ContainerInspectInfo
     ][]
-  ): Promise<void>;
+  ): Promise<[any, void]>;
 }
 
 export interface EmailServiceInterface {
@@ -112,6 +114,34 @@ export interface EmailServiceInterface {
       ContainerInspectInfo
     ][]
   ): Promise<SentMessageInfo | undefined>;
+}
+
+export interface WebhookInterface {
+  webhookUrls: string[] | undefined;
+  sendWebhookNotifications(
+    dockerHost: string | null,
+    monitoredContainers: number | undefined,
+    updatedContainers: number | undefined,
+    updatedContainerObjects: [
+      ImageInspectInfo,
+      ImageInspectInfo,
+      ContainerInspectInfo
+    ][]
+  ): Promise<void | undefined>;
+  modelWebhookPayload(
+    webhookType: string | null,
+    dockerHost: string | null,
+    monitoredContainers: number | undefined,
+    updatedContainers: number | undefined,
+    updatedContainerObjects: [
+      ImageInspectInfo,
+      ImageInspectInfo,
+      ContainerInspectInfo
+    ][]
+  ): string;
+  postToWebhooks(
+    dispatchUrlPayloadPairs: [string, string][] | undefined
+  ): Promise<void | undefined>;
 }
 
 export interface DataServiceInterface {

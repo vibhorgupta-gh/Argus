@@ -110,6 +110,13 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     type: 'string',
     default: null,
   })
+  .option('webhook-urls', {
+    alias: 'w',
+    description:
+      'Specify comma separated Webhook POST urls to broadcast notifications',
+    type: 'string',
+    default: null,
+  })
   .help()
   .alias('help', 'h').argv;
 

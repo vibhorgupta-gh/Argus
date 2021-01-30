@@ -44,6 +44,7 @@
     "@types/yargs": "^15.0.8",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
+    "axios": "^0.21.1",
     "chalk": "^4.1.0",
     "dockerode": "^3.2.1",
     "eslint": "^7.10.0",

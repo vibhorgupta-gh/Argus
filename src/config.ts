@@ -17,6 +17,7 @@ export class Config implements ConfigInterface {
   repoPass: string | null;
   emailConfig?: SmtpOptions;
   emailOptions?: SendMailOptions;
+  webhookUrls?: string[] | undefined;
 
   constructor({
     runonce,
@@ -33,6 +34,7 @@ export class Config implements ConfigInterface {
     smtpPassword,
     smtpSender,
     smtpRecipients,
+    webhookUrls,
   }: CliArgumentsInterface) {
     const toMonitor: string[] | undefined = monitor
       ? parseContainersToFilterInput(monitor)
@@ -64,6 +66,7 @@ export class Config implements ConfigInterface {
       from: smtpSender,
       to: parseEmailRecipients(smtpRecipients),
     };
+    this.webhookUrls = parseWebhookUrlsInput(webhookUrls);
   }
 
   /**
@@ -98,6 +101,26 @@ function parseContainersToFilterInput(
 function parseEmailRecipients(recipients: string | null): string[] | undefined {
   if (!recipients) return undefined;
   return recipients.split(',');
+}
+
+function parseWebhookUrlsInput(
+  webhookUrls: string | null
+): string[] | undefined {
+  if (!webhookUrls) return undefined;
+  const parsedUrlsInput: string[] = webhookUrls.split(',');
+  const validHttpUrl: (url: string) => boolean = (url: string) => {
+    const pattern = new RegExp(
+      '^(https?:\\/\\/)?' + // protocol
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+        '(\\#[-a-z\\d_]*)?$',
+      'i'
+    ); // fragment locator
+    return !!pattern.test(url);
+  };
+  return parsedUrlsInput.filter((url) => validHttpUrl(url));
 }
 
 /**

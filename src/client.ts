@@ -167,19 +167,16 @@ export class Client implements ArgusClientInterface {
         );
       }
       // Send notifications
-      if (this.NotificationClient) {
-        try {
-          await this.NotificationClient.sendNotifications(
-            this.DataClient.monitoredContainers.get(
-              this.ClientConfig.dockerHost
-            ),
-            this.DataClient.updatedContainers.get(this.ClientConfig.dockerHost),
-            this.DataClient.updatedContainerObjects
-          );
-        } catch (err) {
-          console.log(chalk.red(`${err}`));
-        }
+      try {
+        await this.NotificationClient.sendNotifications(
+          this.DataClient.monitoredContainers.get(this.ClientConfig.dockerHost),
+          this.DataClient.updatedContainers.get(this.ClientConfig.dockerHost),
+          this.DataClient.updatedContainerObjects
+        );
+      } catch (err) {
+        console.log(chalk.red(`${err}`));
       }
+
       console.log(chalk.green(`${count} containers updated.`), `\n\n\n\n`);
     }
     // Return if single run enabled, perpetual otherwise (wrapped in setInterval)
