@@ -59,7 +59,12 @@ export class NotificationService implements NotificationInterface {
 
     try {
       this.webhookNotifier = new WebhookService(
-        this.notificationConfig.webhookUrls
+        this.notificationConfig.webhookUrls,
+        this.notificationConfig.pushoverAppToken,
+        this.notificationConfig.pushoverUserKey,
+        this.notificationConfig.pushoverDevice,
+        this.notificationConfig.telegramBotToken,
+        this.notificationConfig.telegramChatId
       );
     } catch (err) {
       this.webhookNotifier = undefined;
@@ -181,14 +186,31 @@ export class EmailService implements EmailServiceInterface {
 
 export class WebhookService implements WebhookInterface {
   public webhookUrls: string[] | undefined;
+  public pushoverAppToken: string | undefined;
+  public pushoverUserKey: string | undefined;
+  public pushoverDevice: string | undefined;
+  public telegramBotToken: string | undefined;
+  public telegramChatId: string | undefined;
 
-  constructor(webHookUrls: string[] | undefined) {
+  constructor(
+    webHookUrls: string[] | undefined,
+    pushoverAppToken: string | undefined,
+    pushoverUserKey: string | undefined,
+    pushoverDevice: string | undefined,
+    telegramBotToken: string | undefined,
+    telegramChatId: string | undefined
+  ) {
     if (!webHookUrls || !webHookUrls.length) {
       throw new Error(
         'No valid Webhook URLs found for notification broadcast.'
       );
     }
     this.webhookUrls = webHookUrls;
+    this.pushoverAppToken = pushoverAppToken;
+    this.pushoverUserKey = pushoverUserKey;
+    this.pushoverDevice = pushoverDevice;
+    this.telegramBotToken = telegramBotToken;
+    this.telegramChatId = telegramChatId;
   }
 
   async sendWebhookNotifications(
@@ -204,13 +226,16 @@ export class WebhookService implements WebhookInterface {
     const dispatchUrlPayloadPairs: [string, string][] | undefined = [];
     let webhookType = 'default';
 
-    for (const webhookUrl of this.webhookUrls) {
+    for (let webhookUrl of this.webhookUrls) {
       if (webhookUrl.includes('slack')) {
         webhookType = 'slack';
       } else if (webhookUrl.includes('discord')) {
         webhookType = 'discord';
       } else if (webhookUrl.includes('pushover')) {
         webhookType = 'pushover';
+      } else if (webhookUrl.includes('telegram')) {
+        webhookType = 'telegram';
+        webhookUrl += `${this.telegramBotToken}/sendMessage`;
       }
 
       const webhookPayload: string = this.modelWebhookPayload(
@@ -236,7 +261,6 @@ export class WebhookService implements WebhookInterface {
       ContainerInspectInfo
     ][]
   ): string {
-    const timestamp: string = JSON.stringify(new Date());
     let payload;
     switch (webhookType) {
       case 'discord':
@@ -244,7 +268,7 @@ export class WebhookService implements WebhookInterface {
           username: 'Webhook Messenger',
           embeds: [
             {
-              title: 'Argus has updates for you!',
+              title: 'Argus has updated containers',
               description: 'Breakdown:',
               color: 15258703,
               fields: [
@@ -270,6 +294,44 @@ export class WebhookService implements WebhookInterface {
               name: updatedObject[2].Name,
               value: `Old SHA: ${updatedObject[0].Id} | New SHA ${updatedObject[1].Id}`,
             });
+          }
+        }
+        break;
+
+      case 'slack':
+        payload = {
+          text: `Socket: ${dockerHost}\nContainers Monitored: ${monitoredContainers}\nContainers Updated: ${updatedContainers}\n`,
+        };
+        if (updatedContainerObjects.length) {
+          for (const updatedObject of updatedContainerObjects) {
+            payload.text += `${updatedObject[2].Name} updated: Old SHA: ${updatedObject[0].Id} | New SHA ${updatedObject[1].Id}\n`;
+          }
+        }
+        break;
+
+      case 'pushover':
+        payload = {
+          token: this.pushoverAppToken,
+          user: this.pushoverUserKey,
+          device: this.pushoverDevice,
+          title: 'Ouroboros has updated containers!',
+          message: `Socket: ${dockerHost}\nContainers Monitored: ${monitoredContainers}\nContainers Updated: ${updatedContainers}\n`,
+        };
+        if (updatedContainerObjects.length) {
+          for (const updatedObject of updatedContainerObjects) {
+            payload.message += `${updatedObject[2].Name} updated: Old SHA: ${updatedObject[0].Id} | New SHA ${updatedObject[1].Id}\n`;
+          }
+        }
+        break;
+
+      case 'telegram':
+        payload = {
+          chat_id: this.telegramChatId,
+          text: `Socket: ${dockerHost}\nContainers Monitored: ${monitoredContainers}\nContainers Updated: ${updatedContainers}\n`,
+        };
+        if (updatedContainerObjects.length) {
+          for (const updatedObject of updatedContainerObjects) {
+            payload.text += `${updatedObject[2].Name} updated: Old SHA: ${updatedObject[0].Id} | New SHA ${updatedObject[1].Id}\n`;
           }
         }
         break;

@@ -29,6 +29,11 @@ export interface CliArgumentsInterface {
   smtpSender?: string | null;
   smtpRecipients?: string | null;
   webhookUrls?: string | null;
+  pushoverToken?: string | null;
+  pushoverUser?: string | null;
+  pushoverDevice?: string | null;
+  telegramToken?: string | null;
+  telegramChat?: string | null;
 }
 
 export interface ConfigInterface {
@@ -43,6 +48,11 @@ export interface ConfigInterface {
   emailConfig?: SmtpOptions;
   emailOptions?: SendMailOptions;
   webhookUrls?: string[] | undefined;
+  pushoverAppToken?: string | undefined;
+  pushoverUserKey?: string | undefined;
+  pushoverDevice?: string | undefined;
+  telegramBotToken?: string | undefined;
+  telegramChatId?: string | undefined;
   extractDockerConfig(): DockerInitOptions;
 }
 
@@ -118,6 +128,11 @@ export interface EmailServiceInterface {
 
 export interface WebhookInterface {
   webhookUrls: string[] | undefined;
+  pushoverAppToken: string | undefined;
+  pushoverUserKey: string | undefined;
+  pushoverDevice: string | undefined;
+  telegramBotToken: string | undefined;
+  telegramChatId: string | undefined;
   sendWebhookNotifications(
     dockerHost: string | null,
     monitoredContainers: number | undefined,

@@ -117,6 +117,37 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     type: 'string',
     default: null,
   })
+  .option('pushover-token', {
+    alias: 'pt',
+    description: 'Specify Pushover app token to broadcast notifications to',
+    type: 'string',
+    default: null,
+  })
+  .option('pushover-user', {
+    alias: 'pu',
+    description: 'Specify Pushover user key to broadcast notifications to',
+    type: 'string',
+    default: null,
+  })
+  .option('pushover-device', {
+    alias: 'pd',
+    description: 'Specify Pushover device to broadcast notifications to',
+    type: 'string',
+    default: null,
+  })
+  .option('telegram-token', {
+    alias: 'tt',
+    description:
+      'Specify token for your Telegram bot to broadcast notifications to',
+    type: 'string',
+    default: null,
+  })
+  .option('telegram-chat', {
+    alias: 'tc',
+    description: 'Specify Telegram chat ID to broadcast notifications to',
+    type: 'string',
+    default: null,
+  })
   .help()
   .alias('help', 'h').argv;
 

@@ -18,6 +18,11 @@ export class Config implements ConfigInterface {
   emailConfig?: SmtpOptions;
   emailOptions?: SendMailOptions;
   webhookUrls?: string[] | undefined;
+  pushoverAppToken?: string | undefined;
+  pushoverUserKey?: string | undefined;
+  pushoverDevice?: string | undefined;
+  telegramBotToken?: string | undefined;
+  telegramChatId?: string | undefined;
 
   constructor({
     runonce,
@@ -35,6 +40,11 @@ export class Config implements ConfigInterface {
     smtpSender,
     smtpRecipients,
     webhookUrls,
+    pushoverToken,
+    pushoverUser,
+    pushoverDevice,
+    telegramToken,
+    telegramChat,
   }: CliArgumentsInterface) {
     const toMonitor: string[] | undefined = monitor
       ? parseContainersToFilterInput(monitor)
@@ -66,7 +76,16 @@ export class Config implements ConfigInterface {
       from: smtpSender,
       to: parseEmailRecipients(smtpRecipients),
     };
-    this.webhookUrls = parseWebhookUrlsInput(webhookUrls);
+    this.webhookUrls = parseWebhookUrlsInput(
+      webhookUrls,
+      !!(pushoverUser && pushoverToken && pushoverDevice),
+      !!(telegramToken && telegramChat)
+    );
+    this.pushoverAppToken = pushoverToken;
+    this.pushoverUserKey = pushoverUser;
+    this.pushoverDevice = pushoverDevice;
+    this.telegramBotToken = telegramToken;
+    this.telegramChatId = telegramChat;
   }
 
   /**
@@ -104,10 +123,16 @@ function parseEmailRecipients(recipients: string | null): string[] | undefined {
 }
 
 function parseWebhookUrlsInput(
-  webhookUrls: string | null
+  webhookUrls: string | null,
+  broadcastToPuhshover: boolean,
+  broadcastToTelegram: boolean
 ): string[] | undefined {
   if (!webhookUrls) return undefined;
   const parsedUrlsInput: string[] = webhookUrls.split(',');
+  if (broadcastToPuhshover)
+    parsedUrlsInput.push('https://api.pushover.net/1/messages.json');
+  if (broadcastToTelegram) parsedUrlsInput.push('https://api.telegram.org/bot');
+
   const validHttpUrl: (url: string) => boolean = (url: string) => {
     const pattern = new RegExp(
       '^(https?:\\/\\/)?' + // protocol
