@@ -127,7 +127,7 @@ export class Image implements ImageClientInterface {
    * @return {boolean}
    * @memberof Image
    */
-  static isUpdatedImage(oldSha: string, newSha: string): boolean {
+  static shouldUpdateCurrentImage(oldSha: string, newSha: string): boolean {
     return !(newSha === oldSha);
   }
 }

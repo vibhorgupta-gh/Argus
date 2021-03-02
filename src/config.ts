@@ -4,6 +4,7 @@ import {
   CliArgumentsInterface,
   ConfigInterface,
   DockerInitOptions,
+  PromOptions,
 } from './interfaces';
 
 export class Config implements ConfigInterface {
@@ -23,6 +24,7 @@ export class Config implements ConfigInterface {
   pushoverDevice?: string | undefined;
   telegramBotToken?: string | undefined;
   telegramChatId?: string | undefined;
+  prometheusConfig?: PromOptions;
 
   constructor({
     runonce,
@@ -45,6 +47,8 @@ export class Config implements ConfigInterface {
     pushoverDevice,
     telegramToken,
     telegramChat,
+    prometheusHost,
+    prometheusPort,
   }: CliArgumentsInterface) {
     const toMonitor: string[] | undefined = monitor
       ? parseContainersToFilterInput(monitor)
@@ -86,6 +90,16 @@ export class Config implements ConfigInterface {
     this.pushoverDevice = pushoverDevice;
     this.telegramBotToken = telegramToken;
     this.telegramChatId = telegramChat;
+    this.prometheusConfig = null;
+    if (
+      validHttpUrl(prometheusHost || process.env.PROM_HOST) &&
+      (prometheusPort || process.env.PROM_PORT)
+    ) {
+      this.prometheusConfig = {
+        host: prometheusHost || process.env.PROM_HOST,
+        port: Number(prometheusPort || process.env.PROM_PORT),
+      };
+    }
   }
 
   /**
@@ -133,18 +147,6 @@ function parseWebhookUrlsInput(
     parsedUrlsInput.push('https://api.pushover.net/1/messages.json');
   if (broadcastToTelegram) parsedUrlsInput.push('https://api.telegram.org/bot');
 
-  const validHttpUrl: (url: string) => boolean = (url: string) => {
-    const pattern = new RegExp(
-      '^(https?:\\/\\/)?' + // protocol
-        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
-        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
-        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
-        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
-        '(\\#[-a-z\\d_]*)?$',
-      'i'
-    ); // fragment locator
-    return !!pattern.test(url);
-  };
   return parsedUrlsInput.filter((url) => validHttpUrl(url));
 }
 
@@ -160,3 +162,16 @@ function checkValidTCPUri(hostUri: string): boolean {
   );
   return regexForValidTCP.test(hostUri);
 }
+
+const validHttpUrl: (url: string) => boolean = (url: string) => {
+  const pattern = new RegExp(
+    '^(https?:\\/\\/)?' + // protocol
+      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+      '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+      '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+      '(\\#[-a-z\\d_]*)?$',
+    'i'
+  ); // fragment locator
+  return !!pattern.test(url);
+};

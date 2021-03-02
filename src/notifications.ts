@@ -11,6 +11,7 @@ import { SmtpOptions } from 'nodemailer-smtp-transport';
 import {
   ConfigInterface,
   NotificationInterface,
+  DataServiceInterface,
   EmailServiceInterface,
   WebhookInterface,
 } from './interfaces';
@@ -21,8 +22,10 @@ export class NotificationService implements NotificationInterface {
   public emailOpts: SendMailOptions;
   public emailNotifier: EmailServiceInterface | undefined;
   public webhookNotifier: WebhookInterface | undefined;
+  public dataClient: DataServiceInterface | undefined;
 
-  constructor(clientConfig: ConfigInterface) {
+  constructor(clientConfig: ConfigInterface, DataClient: DataServiceInterface) {
+    this.dataClient = DataClient;
     this.notificationConfig = clientConfig;
     this.transporterConfig = {
       host: this.notificationConfig.emailConfig.host,

@@ -40,12 +40,21 @@ export class Client implements ArgusClientInterface {
     this.ClientConfig = ClientConfig;
     this.NotificationClient = NotificationClient;
     this.DataClient = DataClient;
+    // init data for metrics
+    this.DataClient.updatedContainers.set(this.ClientConfig.dockerHost, 0);
   }
 
   async execute(): Promise<void | undefined> {
     const runningContainers:
       | RunningContainerInfo[]
       | undefined = await this.ContainerClient.getRunningContainers();
+
+    // set data for metrics
+    this.DataClient.monitoredContainers.set(
+      this.ClientConfig.dockerHost,
+      runningContainers.length
+    );
+    this.DataClient.setGauges(this.ClientConfig.dockerHost);
 
     if (runningContainers && !runningContainers.length) {
       console.log(`\n`, chalk.yellow('No running containers'), `\n\n`);
@@ -141,7 +150,7 @@ export class Client implements ArgusClientInterface {
             continue;
           }
 
-          if (Image.isUpdatedImage(currentImage.Id, latestImage.Id)) {
+          if (Image.shouldUpdateCurrentImage(currentImage.Id, latestImage.Id)) {
             const newConfig: ContainerCreateOptions = Container.newContainerConfig(
               containerInspect,
               latestImage.RepoTags[0]
@@ -154,17 +163,24 @@ export class Client implements ArgusClientInterface {
             await Container.start(newContainer);
             count += 1;
 
+            // set data for metrics
             this.DataClient.updatedContainerObjects.push([
               currentImage,
               latestImage,
               containerInspect,
             ]);
+            this.DataClient.addMetric(
+              containerInspect.Name,
+              this.ClientConfig.dockerHost
+            );
           }
         }
+        // set data for metrics
         this.DataClient.updatedContainers.set(
           this.ClientConfig.dockerHost,
           count
         );
+        this.DataClient.addMetric('all', this.ClientConfig.dockerHost);
       }
       // Send notifications
       try {

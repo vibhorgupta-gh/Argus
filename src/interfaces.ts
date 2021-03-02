@@ -34,6 +34,8 @@ export interface CliArgumentsInterface {
   pushoverDevice?: string | null;
   telegramToken?: string | null;
   telegramChat?: string | null;
+  prometheusHost?: string | null;
+  prometheusPort?: number | null;
 }
 
 export interface ConfigInterface {
@@ -53,6 +55,7 @@ export interface ConfigInterface {
   pushoverDevice?: string | undefined;
   telegramBotToken?: string | undefined;
   telegramChatId?: string | undefined;
+  prometheusConfig?: PromOptions;
   extractDockerConfig(): DockerInitOptions;
 }
 
@@ -101,6 +104,7 @@ export interface NotificationInterface {
   emailOpts: SendMailOptions;
   emailNotifier: EmailServiceInterface | undefined;
   webhookNotifier: WebhookInterface | undefined;
+  dataClient: DataServiceInterface | undefined;
   sendNotifications(
     monitoredContainers: number | undefined,
     updatedContainers: number | undefined,
@@ -167,4 +171,24 @@ export interface DataServiceInterface {
     ImageInspectInfo,
     ContainerInspectInfo
   ][];
+  setGauges(socket: string | undefined): void;
+  addMetric(containerLabel: string, socket: string | undefined): void;
+}
+
+export interface PromOptions {
+  host: string | null;
+  port: number | null;
+}
+
+export interface PrometheusInterface {
+  setMonitoredContainersGauge(
+    socket: string | undefined,
+    monitoredContainers: Map<string, number>
+  ): void;
+  updateContainersCounter(
+    containerLabel: string,
+    socket: string | undefined,
+    updatedContainers: Map<string, number>
+  ): void;
+  startPrometheusServer(): void;
 }

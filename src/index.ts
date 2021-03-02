@@ -148,6 +148,18 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     type: 'string',
     default: null,
   })
+  .option('prometheus-host', {
+    alias: 'H',
+    description: 'Prometheus metrics server hostname',
+    type: 'string',
+    default: null,
+  })
+  .option('prometheus-port', {
+    alias: 'I',
+    description: 'Prometheus metrics server port',
+    type: 'string',
+    default: null,
+  })
   .help()
   .alias('help', 'h').argv;
 
@@ -165,18 +177,17 @@ try {
 }
 
 // Initialize clients
+const DataClient: DataServiceInterface | null = new DataService(ClientConfig);
 const ContainerClient: ContainerClientInterface = new Container(DockerClient);
 const ImageClient: ImageClientInterface = new Image(DockerClient);
 let NotificationClient: NotificationInterface | undefined;
 
 try {
-  NotificationClient = new NotificationService(ClientConfig);
+  NotificationClient = new NotificationService(ClientConfig, DataClient);
 } catch (err) {
   NotificationClient = undefined;
   console.log(chalk.red(`${err.message}`));
 }
-
-const DataClient: DataServiceInterface = new DataService();
 
 // Initialize executor client
 const Argus = new Client(
