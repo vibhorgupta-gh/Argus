@@ -1,5 +1,4 @@
 import { createServer, Server, IncomingMessage, ServerResponse } from 'http';
-import { URL } from 'url';
 import { ImageInspectInfo, ContainerInspectInfo } from 'dockerode';
 import { Counter, Gauge, collectDefaultMetrics, Registry } from 'prom-client';
 import {
@@ -7,6 +6,7 @@ import {
   PrometheusInterface,
   ConfigInterface,
 } from './interfaces';
+import { logger } from './logger';
 
 export class DataService implements DataServiceInterface {
   private prometheus;
@@ -97,6 +97,11 @@ class Prometheus implements PrometheusInterface {
     this.monitoredContainersGauge
       .labels(socket)
       .set(monitoredContainers.get(socket));
+    logger.debug(
+      `Prometheus: monitored containers gauge set to: ${socket} -> ${monitoredContainers.get(
+        socket
+      )}`
+    );
   }
 
   updateContainersCounter(
@@ -107,6 +112,9 @@ class Prometheus implements PrometheusInterface {
     if (containerLabel === 'all')
       this.allContainersGauge.labels(socket).set(updatedContainers.get(socket));
     else this.updatedContainersCounter.labels(socket, containerLabel).inc();
+    logger.debug(
+      `Prometheus: updated containers counter incremented for ${socket} -> ${containerLabel}`
+    );
   }
 
   startPrometheusServer(): void {

@@ -5,6 +5,7 @@ import {
 } from 'dockerode';
 import { ImageClientInterface, PullAuthInterface } from './interfaces';
 import chalk from 'chalk';
+import { logger } from './logger';
 
 export class Image implements ImageClientInterface {
   client: any;
@@ -25,6 +26,7 @@ export class Image implements ImageClientInterface {
       return imageList;
     } catch (err) {
       console.log(chalk.red(`List images error: ${err.message}`));
+      logger.error(`List images error: ${err.message}`);
       return;
     }
   }
@@ -43,6 +45,7 @@ export class Image implements ImageClientInterface {
       return imageInfo;
     } catch (err) {
       console.log(chalk.red(`Inspect images error: ${err.message}`));
+      logger.error(`Inspect images error: ${err.message}`);
       return;
     }
   }
@@ -91,8 +94,12 @@ export class Image implements ImageClientInterface {
     } catch (err) {
       if (err instanceof TypeError) {
         console.log(`Container already running for the latest image.\n`);
+        logger.debug(
+          `Container already running for the latest image: ${err.message}`
+        );
       } else {
         console.log(chalk.red(`Pull latest image error: ${err}`), `\n`);
+        logger.error(`Pull latest images error: ${err.message}`);
       }
       return;
     }
@@ -112,8 +119,10 @@ export class Image implements ImageClientInterface {
       const imageObject: ImageInterface = await this.client.getImage(imageName);
       await imageObject.remove();
       console.log(chalk.cyan(`Removed image ${imageName}`));
+      logger.debug(`Removed image ${imageName}`);
     } catch (err) {
-      console.log(chalk.red(`remove image error: ${err}`));
+      console.log(chalk.red(`Remove image error: ${err}`));
+      logger.error(`Remove image error: ${err.message}`);
     }
   }
 

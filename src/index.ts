@@ -19,6 +19,7 @@ import {
   DataServiceInterface,
 } from './interfaces';
 import { Config } from './config';
+import { Logger, logger } from './logger';
 
 const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
   .option('runonce', {
@@ -166,13 +167,17 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
 // Set configs and clients
 const ClientConfig: ConfigInterface = new Config(argv);
 
+//Initialze logger
+new Logger();
+
 // Initialize docker client
 let DockerClient: any;
 try {
   const dockerOptions: DockerInitOptions = ClientConfig.extractDockerConfig();
   DockerClient = new Docker(dockerOptions);
-} catch (e) {
-  console.error(e);
+} catch (err) {
+  console.error(err);
+  logger.crit(`Can't connect to the Docker API. ${err.message}`);
   process.exit(1);
 }
 
@@ -187,6 +192,7 @@ try {
 } catch (err) {
   NotificationClient = undefined;
   console.log(chalk.red(`${err.message}`));
+  logger.error(`Notification client error: ${err.message}`);
 }
 
 // Initialize executor client

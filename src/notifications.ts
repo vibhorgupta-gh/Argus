@@ -15,6 +15,7 @@ import {
   EmailServiceInterface,
   WebhookInterface,
 } from './interfaces';
+import { logger } from './logger';
 
 export class NotificationService implements NotificationInterface {
   private notificationConfig: ConfigInterface;
@@ -58,6 +59,7 @@ export class NotificationService implements NotificationInterface {
     } catch (err) {
       this.emailNotifier = undefined;
       console.log(chalk.yellow(`${err.message}`));
+      logger.error(`Email broadcast error: ${err.message}`);
     }
 
     try {
@@ -72,6 +74,7 @@ export class NotificationService implements NotificationInterface {
     } catch (err) {
       this.webhookNotifier = undefined;
       console.log(chalk.yellow(`${err.message}`));
+      logger.error(`Webhook broadcast error: ${err.message}`);
     }
   }
 
@@ -134,10 +137,12 @@ export class EmailService implements EmailServiceInterface {
 
   constructor(transporterConfig: SmtpOptions, emailOptions: SendMailOptions) {
     if (!transporterConfig.host || !transporterConfig.port) {
-      throw new Error('SMTP host and not port not specified. Disabling SMTP');
+      logger.warn(`Email warn: SMTP host and port not specified`);
+      throw new Error('SMTP host and port not specified. Disabling SMTP');
     }
 
     if (!emailOptions.from || !emailOptions.to) {
+      logger.warn(`Email warn: Email sender and recipents not specified`);
       throw new Error(
         'Insufficient parameters supplied, please specify email sender and recipients. Disabling SMTP'
       );
@@ -182,6 +187,7 @@ export class EmailService implements EmailServiceInterface {
           `There was a problem talking to the SMTP server, disabling SMTP. Error: ${err.message}`
         )
       );
+      logger.error(`SMTP server error: ${err.message}`);
       return;
     }
   }
@@ -204,6 +210,7 @@ export class WebhookService implements WebhookInterface {
     telegramChatId: string | undefined
   ) {
     if (!webHookUrls || !webHookUrls.length) {
+      logger.warn(`Webhook warn: No valid Webhook URLs found`);
       throw new Error(
         'No valid Webhook URLs found for notification broadcast.'
       );
@@ -358,6 +365,7 @@ export class WebhookService implements WebhookInterface {
         await axios.post(url, payload, { headers });
       } catch (err) {
         console.log(chalk.red(`Error posting to Webhook ${url} -> ${err}`));
+        logger.error(`Webhook ${url} error: ${err.message}`);
       }
     }
   }

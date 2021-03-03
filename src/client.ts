@@ -16,6 +16,7 @@ import {
 } from './interfaces';
 import { Image } from './image';
 import { Container } from './container';
+import { logger } from './logger';
 import chalk from 'chalk';
 
 export class Client implements ArgusClientInterface {
@@ -58,6 +59,7 @@ export class Client implements ArgusClientInterface {
 
     if (runningContainers && !runningContainers.length) {
       console.log(`\n`, chalk.yellow('No running containers'), `\n\n`);
+      logger.info(`No running containers`);
     } else {
       let count = 0;
       let containersToMonitor: RunningContainerInfo[] | undefined = [];
@@ -71,17 +73,21 @@ export class Client implements ArgusClientInterface {
           this.ClientConfig.dockerHost,
           containersToMonitor.length
         );
-      } catch {
+      } catch (err) {
         console.log(
           chalk.red(
             `Containers to monitor intersect with containers to ignore!\nPlease try again with no overlaps.`
           ),
           `\n`
         );
+        logger.error(
+          `Containers to monitor intersect with containers to ignore: ${err.message}`
+        );
         return Promise.resolve();
       }
       if (containersToMonitor.length == 0) {
         console.log(chalk.yellow('No running containers to monitor.'), `\n\n`);
+        logger.info(`No running containers to monitor`);
       } else {
         // Non empty array of containers to be monitored
         for (const containerObject of containersToMonitor) {
@@ -98,8 +104,15 @@ export class Client implements ArgusClientInterface {
             ),
             `\n`
           );
-
+          logger.info(
+            `Container to be updated: ${containerInspect['Name'].replace(
+              '/',
+              ''
+            )}`
+          );
           console.log(chalk.yellow('Checking locally for current image...'));
+          logger.debug('Checking locally for current image...');
+
           const currentImage:
             | ImageInspectInfo
             | undefined = await this.ImageClient.inspect(
@@ -112,6 +125,8 @@ export class Client implements ArgusClientInterface {
               chalk.yellow('Pulling latest image from registry...'),
               `\n`
             );
+            logger.debug('Pulling latest image from registry...');
+
             let pullAuthCredentials: PullAuthInterface | undefined;
             if (this.ClientConfig.repoUser && this.ClientConfig.repoPass) {
               pullAuthCredentials = {
@@ -134,6 +149,11 @@ export class Client implements ArgusClientInterface {
                 ),
                 `\n`
               );
+              logger.debug(
+                `Removing outdated image: ${JSON.stringify(
+                  currentImage.RepoTags
+                )}`
+              );
               this.ImageClient.remove(currentImage);
             }
             // Container already running on latest image or a pull image error was encountered
@@ -142,11 +162,17 @@ export class Client implements ArgusClientInterface {
                 console.log(
                   `Image cleanup inconsequential, current base image is the latest version.\n`
                 );
+                logger.info(
+                  `Image cleanup inconsequential, current base image is the latest version: ${JSON.stringify(
+                    currentImage.RepoTags
+                  )}`
+                );
               }
               continue;
             }
           } catch (err) {
             console.log(chalk.red(`Docker API error: ${err.message}`));
+            logger.error(`Docker API error: ${err.message}`);
             continue;
           }
 
@@ -191,9 +217,11 @@ export class Client implements ArgusClientInterface {
         );
       } catch (err) {
         console.log(chalk.red(`${err}`));
+        logger.error(`Error in broadcasting notifications: ${err.message}`);
       }
 
       console.log(chalk.green(`${count} containers updated.`), `\n\n\n\n`);
+      console.info(`${count} containers updated.`);
     }
     // Return if single run enabled, perpetual otherwise (wrapped in setInterval)
     if (this.ClientConfig.runOnce) return Promise.resolve();

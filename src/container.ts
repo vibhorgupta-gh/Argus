@@ -4,9 +4,9 @@ import {
   ContainerInfo,
   ContainerInspectInfo,
 } from 'dockerode';
-import { RunningContainerInfo, ContainerClientInterface } from './interfaces';
 import chalk from 'chalk';
-
+import { RunningContainerInfo, ContainerClientInterface } from './interfaces';
+import { logger } from './logger';
 export class Container implements ContainerClientInterface {
   client: any;
 
@@ -30,6 +30,7 @@ export class Container implements ContainerClientInterface {
       return container;
     } catch (err) {
       console.log(chalk.red(`create container error: ${err}`));
+      logger.error(`create container error: ${err.message}`);
       return;
     }
   }
@@ -48,6 +49,7 @@ export class Container implements ContainerClientInterface {
       console.log(chalk.cyan(`Started container ${container.id}`));
     } catch (err) {
       console.log(chalk.red(`start container error: ${err}`));
+      logger.error(`start container error: ${err.message}`);
     }
   }
 
@@ -65,6 +67,7 @@ export class Container implements ContainerClientInterface {
       console.log(chalk.cyan(`Stopped container ${container.id}`));
     } catch (err) {
       console.log(chalk.red(`stop container error: ${err}`));
+      logger.error(`stop container error: ${err.message}`);
     }
   }
 
@@ -82,6 +85,7 @@ export class Container implements ContainerClientInterface {
       console.log(chalk.cyan(`Removed container ${container.id}`));
     } catch (err) {
       console.log(chalk.red(`remove container error: ${err}`));
+      logger.error(`remove container error: ${err.message}`);
     }
   }
 
@@ -121,6 +125,7 @@ export class Container implements ContainerClientInterface {
       return runningContainers;
     } catch (err) {
       console.log(chalk.red(`running containers error: ${err}`));
+      logger.error(`running containers error: ${err.message}`);
       return;
     }
   }
