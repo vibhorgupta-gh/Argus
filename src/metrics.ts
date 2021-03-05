@@ -65,7 +65,7 @@ class Prometheus implements PrometheusInterface {
 
     this.registry = new Registry();
     this.registry.setDefaultLabels({ app: 'argus' });
-    collectDefaultMetrics({ register: this.registry, prefix: 'argus' });
+    collectDefaultMetrics({ register: this.registry, prefix: 'argus_' });
 
     this.updatedContainersCounter = new Counter({
       name: 'updated_containers',

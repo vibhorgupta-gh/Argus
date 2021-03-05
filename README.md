@@ -61,8 +61,28 @@ docker run --rm whaleit/argus --help
 - `--cleanup`, `-c`: Remove the older base image if a new one is found and updated. Defaults to `false`.
 - `--user`, `-u`: Specify username for private image registry. Defaults to `null`.
 - `--password`, `-p`: Specify password for private image registry. Defaults to `null`.
+- `--smtp-host`, `-H`: Specify SMTP relay hostname for email notifications. Defaults to `null`.
+- `--smtp-port`, `-I`: Specify SMTP relay port for email notifications. Defaults to `null`.
+- `--smtp-username`, `-U`: Specify SMTP relay username to login SMTP server. Defaults to `null`.
+- `--smtp-password`, `-G`: Specify SMTP relay password to login SMTP server. Defaults to `null`.
+- `--smtp-sender`, `-j`: Specify sender's email account for email notification. Defaults to `null`.
+- `--smtp-recipients`, `-J`: Specify all recipients' comma separated email accounts for email notification. Defaults to `null`.
+- `--webhook-urls`, `-w`: Specify comma separated Webhook urls to HTTP POST broadcast notifications to various platforms (supports Slack, Discord, Telegram, Pushover). Defaults to `null`.
+- `--pushover-token`, `-pt`: Specify Pushover App Token to broadcast notifications to your Pushover client. Defaults to `null`.
+- `--pushover-user`, `-pu`: Specify Pushover User Key to broadcast notifications to your Pushover client. Defaults to `null`.
+- `--pushover-device`, `-pd`: Specify Pushover device to broadcast notifications to your Pushover client. Defaults to `null`.
+- `--telegram-token`, `-tt`: Specify Telegram bot Token to broadcast notifications to Telegram. Defaults to `null`.
+- `--telegram-chat`, `-tc`: Specify Telegram Chat ID to broadcast notifications to Telegram. Defaults to `null`.
+- `--prometheus-host`, `-ph`: Specify server hostname for Prometheus to scrape metrics from. Defaults to `null`.
+- `--prometheus-port`, `-pi`: Specify server port for Prometheus to scrape metrics from. Defaults to `null`.
 
-`-u` and `-p` flags are to be used in conjunction as credentials in case of private image registry.
+**Using related flags:**
+
+- `-u` and `-p` flags are to be used in conjunction as credentials in case of private image registry.
+- `-H`, `-I`, `-U`,`-G`, `-j` and `-J`are to be used in conjunction as SMTP server credentials and sender/recipients in case of broadcasting notifications via email.
+- `w`, `-pt`, `-pu` and `-pd` are to be used in conjunction in case of broadcasting notifications to Pushover.
+- `w`, `-tt` and `-tc` are to be used in conjunction in case of broadcasting notifications to Telegram.
+- `w`, `-ph` and `-pi` are to be used in conjunction in case of exporting data to Prometheus.
 
 ---
 
@@ -213,16 +233,75 @@ export REPO_USER=myUser
 export REPO_PASS=myPassword
 ```
 
+### Email notifications
+
+Argus can send notifications to subscribers via email, detailing about the count of containers being updated and their new hashes.
+
+1. Running the docker image
+
+```bash
+docker run -d --name argus \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus --smtp-host='smtp.gmail.com' --smtp-port='587' --smtp-username='someaccount@gmail.com' --smtp-password='someaccountpass' --smtp-recipients='somereceiver@gmail.com,anotherreceiver@gmail.com' --smtp-sender='somesender@gmail.com'
+```
+
+2. Running the npm package
+
+```bash
+argus --smtp-host='smtp.gmail.com' --smtp-port='587' --smtp-username='someaccount@gmail.com' --smtp-password='someaccountpass' --smtp-recipients='somereceiver@gmail.com,anotherreceiver@gmail.com' --smtp-sender='somesender@gmail.com'
+```
+
+### Webhook notifications
+
+Argus can broadcast notifiations to various platforms that support webhook POST urls, detailing about the count of containers being updated and their new hashes. Following platforms are supported (You're free to request for more platforms, preferably ones supporting webhooks):
+
+- Slack
+- Telegram
+- Discord
+- Pushover
+
+Each of these platforms requires separate flags with platform specific information that can be passed independant of any other in this list. Webhook URLs, however, have to be necessarily passed in specifying comma separated webhook URL strings of said platforms.
+The pre-requisite is to register apps (Pushover, Slack)/ bots (Telegram)/ servers (Discord) and obtaining their webhook URLs.
+
+1. Running the docker image
+
+```bash
+docker run -d --name argus \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus --webhook-urls='https://discord.com/api/webhooks/some-url','https://hooks.slack.com/services/some-url' --pushover-token='<pushover_token>' --pushover-user='<pushover_user_key>' --pushover-device='<pushover_device>' --telegram-token='<identifier>:<token>' --telegram-chat='<telegram_chat_id>'
+```
+
+2. Running the npm package
+
+```bash
+argus --smtp-host='smtp.gmail.com' --smtp-port='587' --smtp-username='someaccount@gmail.com' --smtp-password='someaccountpass' --smtp-recipients='somereceiver@gmail.com,anotherreceiver@gmail.com' --smtp-sender='somesender@gmail.com'
+```
+
+### Prometheus metrics
+
+Argus is enabled with Prometheus data exporter from which Prometheus can scrape for metrics. Argus fires up a server for Prometheus to attach to, hostname and port being specified by the user. Prometheus is disabled by default if no hostname and port is found.
+
+1. Running the docker image
+
+```bash
+docker run -d --name argus \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus --prometheus-host='http://127.0.0.1' --prometheus-port='8000'
+```
+
+2. Running the npm package
+
+```bash
+argus --prometheus-host='http://127.0.0.1' --prometheus-port='8000'
+```
+
+You can also easily set up a Grafana dashboard for said metrics captured which require miniamal changes to `promotheus.yml` config file on your system, and configuring your Grafana subdomain accordingly. **An importable Grafana dashboard template is coming soon.**
+
 ---
 
 ## Development
 
-### Under the hood
-
-- [Docker SDK](https://github.com/apocas/dockerode)
-- [Typescript](https://www.typescriptlang.org/)
-- [Jest](https://jestjs.io/)
-- [Yarn](https://classic.yarnpkg.com/en/docs/)
+Argus is built with [Typescript](https://www.typescriptlang.org/) and utilizes this [Docker SDK](https://github.com/apocas/dockerode).
 
 ### Installation
 

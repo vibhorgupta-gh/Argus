@@ -137,12 +137,12 @@ export class EmailService implements EmailServiceInterface {
 
   constructor(transporterConfig: SmtpOptions, emailOptions: SendMailOptions) {
     if (!transporterConfig.host || !transporterConfig.port) {
-      logger.warn(`Email warn: SMTP host and port not specified`);
+      logger.info(`Email warn: SMTP host and port not specified`);
       throw new Error('SMTP host and port not specified. Disabling SMTP');
     }
 
     if (!emailOptions.from || !emailOptions.to) {
-      logger.warn(`Email warn: Email sender and recipents not specified`);
+      logger.info(`Email warn: Email sender and recipents not specified`);
       throw new Error(
         'Insufficient parameters supplied, please specify email sender and recipients. Disabling SMTP'
       );

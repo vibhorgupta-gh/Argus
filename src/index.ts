@@ -150,14 +150,15 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     default: null,
   })
   .option('prometheus-host', {
-    alias: 'H',
-    description: 'Prometheus metrics server hostname',
+    alias: 'ph',
+    description:
+      'Specify server hostname for Prometheus to scrape metrics from',
     type: 'string',
     default: null,
   })
   .option('prometheus-port', {
-    alias: 'I',
-    description: 'Prometheus metrics server port',
+    alias: 'pi',
+    description: 'Specify server port for Prometheus to scrape metrics from',
     type: 'string',
     default: null,
   })
