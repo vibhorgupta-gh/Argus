@@ -210,7 +210,7 @@ export class WebhookService implements WebhookInterface {
     telegramChatId: string | undefined
   ) {
     if (!webHookUrls || !webHookUrls.length) {
-      logger.warn(`Webhook warn: No valid Webhook URLs found`);
+      logger.info(`Webhook warn: No valid Webhook URLs found`);
       throw new Error(
         'No valid Webhook URLs found for notification broadcast.'
       );

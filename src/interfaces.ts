@@ -36,6 +36,10 @@ export interface CliArgumentsInterface {
   telegramChat?: string | null;
   prometheusHost?: string | null;
   prometheusPort?: number | null;
+  influxUrl?: string | null;
+  influxToken?: string | null;
+  influxOrg?: string | null;
+  influxBucket?: string | null;
 }
 
 export interface ConfigInterface {
@@ -56,6 +60,7 @@ export interface ConfigInterface {
   telegramBotToken?: string | undefined;
   telegramChatId?: string | undefined;
   prometheusConfig?: PromOptions;
+  influxConfig?: InfluxOptions;
   extractDockerConfig(): DockerInitOptions;
 }
 
@@ -180,6 +185,13 @@ export interface PromOptions {
   port: number | null;
 }
 
+export interface InfluxOptions {
+  url: string | null;
+  token: string | null;
+  org: string | null;
+  bucket: string | null;
+}
+
 export interface PrometheusInterface {
   setMonitoredContainersGauge(
     socket: string | undefined,
@@ -191,4 +203,13 @@ export interface PrometheusInterface {
     updatedContainers: Map<string, number>
   ): void;
   startPrometheusServer(): void;
+}
+
+export interface InfluxInterface {
+  writePoints(
+    containerLabel: string,
+    socket: string | undefined,
+    monitoredContainers: Map<string, number>,
+    updatedContainers: Map<string, number>
+  ): void;
 }

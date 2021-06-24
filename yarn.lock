@@ -866,6 +866,11 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@influxdata/influxdb-client@^1.14.0":
+  version "1.14.0"
+  resolved "https://registry.yarnpkg.com/@influxdata/influxdb-client/-/influxdb-client-1.14.0.tgz#a745eeb8b980937df23f9adf2f3bfde6971246bc"
+  integrity sha512-q/kC9HD/C4J88Nb5XPO1ULR4bmJembUY39rwtUpGJ3djcBGFBUHTJmKkxgTnHWInehnoD/JUsnfud+XVHZ8Y8w==
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"

@@ -162,6 +162,30 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     type: 'string',
     default: null,
   })
+  .option('influx-url', {
+    alias: 'iu',
+    description: 'Specify url where InfluxDB is exposed',
+    type: 'string',
+    default: null,
+  })
+  .option('influx-token', {
+    alias: 'it',
+    description: 'Specify InfluxDB auth token for your organisation',
+    type: 'string',
+    default: null,
+  })
+  .option('influx-org', {
+    alias: 'io',
+    description: 'Specify InfluxDB organisation',
+    type: 'string',
+    default: null,
+  })
+  .option('influx-bucket', {
+    alias: 'ib',
+    description: 'Specify InfluxDB bucket for your organisation',
+    type: 'string',
+    default: null,
+  })
   .help()
   .alias('help', 'h').argv;
 
