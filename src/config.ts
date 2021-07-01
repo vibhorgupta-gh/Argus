@@ -106,7 +106,10 @@ export class Config implements ConfigInterface {
         port: Number(prometheusPort || process.env.PROM_PORT),
       };
     }
-    if (validHttpUrl(influxUrl || process.env.INFLUX_URL) && influxToken) {
+    if (
+      validHttpUrl(influxUrl || process.env.INFLUX_URL) &&
+      (influxToken || process.env.INFLUX_TOKEN)
+    ) {
       this.influxConfig = {
         url: influxUrl || process.env.INFLUX_URL,
         token: influxToken || process.env.INFLUX_TOKEN,
@@ -186,6 +189,6 @@ const validHttpUrl: (url: string) => boolean = (url: string) => {
       '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
       '(\\#[-a-z\\d_]*)?$',
     'i'
-  ); // fragment locator
+  );
   return !!pattern.test(url);
 };

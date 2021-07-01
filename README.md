@@ -75,6 +75,10 @@ docker run --rm whaleit/argus --help
 - `--telegram-chat`, `-tc`: Specify Telegram Chat ID to broadcast notifications to Telegram. Defaults to `null`.
 - `--prometheus-host`, `-ph`: Specify server hostname for Prometheus to scrape metrics from. Defaults to `null`.
 - `--prometheus-port`, `-pi`: Specify server port for Prometheus to scrape metrics from. Defaults to `null`.
+- `--influx-url`, `-iu`: Specify url where InfluxDB is exposed. Defaults to `null`.
+- `--influx-token`, `-it`: Specify InfluxDB auth token for your organisation. Defaults to `null`.
+- `--influx-org`, `-io`: Specify InfluxDB organisation. Defaults to `null`.
+- `--influx-bucket`, `-ib`: Specify InfluxDB bucket for your organisation. Defaults to `null`.
 
 **Using related flags:**
 
@@ -83,6 +87,7 @@ docker run --rm whaleit/argus --help
 - `w`, `-pt`, `-pu` and `-pd` are to be used in conjunction in case of broadcasting notifications to Pushover.
 - `w`, `-tt` and `-tc` are to be used in conjunction in case of broadcasting notifications to Telegram.
 - `w`, `-ph` and `-pi` are to be used in conjunction in case of exporting data to Prometheus.
+- `-iu`, `-it`, `-io` and `-ib` are to be used in conjunction in case of writing data to InfluxDB
 
 ---
 
@@ -296,6 +301,26 @@ argus --prometheus-host='http://127.0.0.1' --prometheus-port='8000'
 ```
 
 You can also easily set up a Grafana dashboard for said metrics captured which require miniamal changes to `promotheus.yml` config file on your system, and configuring your Grafana subdomain accordingly. **An importable Grafana dashboard template is coming soon.**
+
+### InfluxDB metrics
+
+Argus is enabled with InfluxDB client which can write data to your local or hosted Influx service. User needs to start the Influx service and specify above mentioned parameters to activate influx exporter. InfluxDB is disabled by default if no URL and token is found.
+
+1. Running the docker image
+
+```bash
+docker run -d --name argus \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  whaleit/argus  --influx-token='<your_token>' --influx-url='http://127.0.0.1:8086/' --influx-org='<your_org>' --influx-bucket='<your_bucket>'
+```
+
+2. Running the npm package
+
+```bash
+argus --influx-token='<your_token>' --influx-url='http://127.0.0.1:8086/' --influx-org='<your_org>' --influx-bucket='<your_bucket>'
+```
+
+You can easily query the data written by Argus in either the influx CLI or the dashboard UI (live on your influx-url) to observe metrics. You an also use the influx client libraries to query this data in your applications.
 
 ---
 
