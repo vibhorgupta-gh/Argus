@@ -1,15 +1,24 @@
 import { createServer, Server, IncomingMessage, ServerResponse } from 'http';
+import { hostname } from 'os';
 import { ImageInspectInfo, ContainerInspectInfo } from 'dockerode';
 import { Counter, Gauge, collectDefaultMetrics, Registry } from 'prom-client';
 import {
+  InfluxDB,
+  WriteApi,
+  Point,
+  ClientOptions,
+} from '@influxdata/influxdb-client';
+import {
   DataServiceInterface,
   PrometheusInterface,
+  InfluxInterface,
   ConfigInterface,
 } from './interfaces';
 import { logger } from './logger';
 
 export class DataService implements DataServiceInterface {
   private prometheus;
+  private influx;
   public monitoredContainers: Map<string, number>;
   public updatedContainers: Map<string, number>;
   public updatedContainerObjects: [
@@ -31,6 +40,15 @@ export class DataService implements DataServiceInterface {
             clientConfig.prometheusConfig.port
           )
         : null;
+    this.influx =
+      clientConfig.influxConfig?.url && clientConfig.influxConfig?.token
+        ? new InfluxClient(
+            clientConfig.influxConfig.url,
+            clientConfig.influxConfig.token,
+            clientConfig.influxConfig.org,
+            clientConfig.influxConfig.bucket
+          )
+        : null;
   }
 
   setGauges(socket: string | undefined): void {
@@ -42,12 +60,21 @@ export class DataService implements DataServiceInterface {
   }
 
   addMetric(containerLabel: string, socket: string | undefined): void {
-    if (!this.prometheus) return;
-    this.prometheus.updateContainersCounter(
-      containerLabel,
-      socket,
-      this.updatedContainers
-    );
+    if (this.prometheus) {
+      this.prometheus.updateContainersCounter(
+        containerLabel,
+        socket,
+        this.updatedContainers
+      );
+    }
+    if (this.influx) {
+      this.influx.writePoints(
+        containerLabel,
+        socket,
+        this.monitoredContainers,
+        this.updatedContainers
+      );
+    }
   }
 }
 
@@ -133,5 +160,72 @@ class Prometheus implements PrometheusInterface {
     );
 
     server.listen(this.prometheusPort, this.prometheusHost.split('://')[1]);
+  }
+}
+
+class InfluxClient implements InfluxInterface {
+  private influxUrl: string;
+  private influxToken: string;
+  private influxOrg: string;
+  private influxBucket: string;
+
+  private influxClient: InfluxDB;
+  private influxWriteApi: WriteApi;
+
+  constructor(url: string, token: string, orgName: string, bucketName: string) {
+    this.influxUrl = url;
+    this.influxToken = token;
+    this.influxOrg = orgName;
+    this.influxBucket = bucketName;
+
+    this.initializeInflux();
+    this.setupInfluxWriteApi();
+  }
+
+  private initializeInflux(): void {
+    const influxOpts: ClientOptions = {
+      url: this.influxUrl,
+      token: this.influxToken,
+    };
+    this.influxClient = new InfluxDB(influxOpts);
+  }
+
+  private setupInfluxWriteApi(): void {
+    this.influxWriteApi = this.influxClient.getWriteApi(
+      this.influxOrg,
+      this.influxBucket
+    );
+    this.influxWriteApi.useDefaultTags({
+      location: hostname(),
+      service: 'argus',
+    });
+  }
+
+  writePoints(
+    containerLabel: string,
+    socket: string | undefined,
+    monitoredContainers: Map<string, number>,
+    updatedContainers: Map<string, number>
+  ): void {
+    const containerPoint = new Point('Argus').timestamp(new Date());
+
+    if (containerLabel === 'all') {
+      containerPoint
+        .tag('type', 'stats')
+        .intField('monitored_containers', monitoredContainers.get(socket))
+        .intField('updated_containers', updatedContainers.get(socket));
+    } else {
+      containerPoint
+        .tag('type', 'container_update')
+        .tag('container', containerLabel)
+        .intField('count', 1);
+    }
+
+    this.influxWriteApi.writePoint(containerPoint);
+    logger.info(
+      `InfluxDB: Container update stats written to database -> ${JSON.stringify(
+        containerPoint
+      )}`
+    );
   }
 }

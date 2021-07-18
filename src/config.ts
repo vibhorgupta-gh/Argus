@@ -5,6 +5,7 @@ import {
   ConfigInterface,
   DockerInitOptions,
   PromOptions,
+  InfluxOptions,
 } from './interfaces';
 
 export class Config implements ConfigInterface {
@@ -25,6 +26,7 @@ export class Config implements ConfigInterface {
   telegramBotToken?: string | undefined;
   telegramChatId?: string | undefined;
   prometheusConfig?: PromOptions;
+  influxConfig?: InfluxOptions;
 
   constructor({
     runonce,
@@ -49,6 +51,10 @@ export class Config implements ConfigInterface {
     telegramChat,
     prometheusHost,
     prometheusPort,
+    influxUrl,
+    influxToken,
+    influxOrg,
+    influxBucket,
   }: CliArgumentsInterface) {
     const toMonitor: string[] | undefined = monitor
       ? parseContainersToFilterInput(monitor)
@@ -98,6 +104,17 @@ export class Config implements ConfigInterface {
       this.prometheusConfig = {
         host: prometheusHost || process.env.PROM_HOST,
         port: Number(prometheusPort || process.env.PROM_PORT),
+      };
+    }
+    if (
+      validHttpUrl(influxUrl || process.env.INFLUX_URL) &&
+      (influxToken || process.env.INFLUX_TOKEN)
+    ) {
+      this.influxConfig = {
+        url: influxUrl || process.env.INFLUX_URL,
+        token: influxToken || process.env.INFLUX_TOKEN,
+        org: influxOrg || process.env.INFLUX_ORG,
+        bucket: influxBucket || process.env.INFLUX_BUCKET,
       };
     }
   }
@@ -172,6 +189,6 @@ const validHttpUrl: (url: string) => boolean = (url: string) => {
       '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
       '(\\#[-a-z\\d_]*)?$',
     'i'
-  ); // fragment locator
+  );
   return !!pattern.test(url);
 };
