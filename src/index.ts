@@ -186,6 +186,18 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     type: 'string',
     default: null,
   })
+  .option('semver-update', {
+    alias: 'sv',
+    description: 'Allow updates according to semantically versioned images',
+    type: 'boolean',
+    default: false,
+  })
+  .option('patch-only', {
+    alias: 'po',
+    description: 'Only updates to latest patch release',
+    type: 'boolean',
+    default: false,
+  })
   .help()
   .alias('help', 'h').argv;
 

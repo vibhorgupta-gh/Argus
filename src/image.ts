@@ -3,9 +3,18 @@ import {
   ImageInspectInfo,
   ImageInfo,
 } from 'dockerode';
-import { ImageClientInterface, PullAuthInterface } from './interfaces';
+import { clean, coerce, valid, rcompare, major, minor, patch } from 'semver';
+import {
+  ImageClientInterface,
+  ConfigInterface,
+  RegistryInterface,
+  PullAuthInterface,
+} from './interfaces';
+import { Registry } from './registry';
 import chalk from 'chalk';
 import { logger } from './logger';
+
+const LATEST_TAG = 'latest';
 
 export class Image implements ImageClientInterface {
   client: any;
@@ -60,12 +69,29 @@ export class Image implements ImageClientInterface {
    * @memberof Image
    */
   async pullLatestImage(
-    image: ImageInspectInfo,
-    authconfig: PullAuthInterface | undefined
+    imageName: string | undefined,
+    imageTag: string | undefined,
+    config: ConfigInterface
   ): Promise<ImageInspectInfo | undefined> {
+    // Credentials for private repo auth
+    let pullAuthCredentials: PullAuthInterface | undefined;
+    if (config.repoUser && config.repoPass) {
+      pullAuthCredentials = {
+        username: config.repoUser,
+        password: config.repoPass,
+      };
+    }
+
     try {
-      const latestName = `${image.RepoTags[1].split(':')[0]}:latest`;
-      const authCredentials = authconfig ? { authconfig } : {};
+      const latestName = `${imageName}:${imageTag}`;
+      if (!imageName || !imageTag) {
+        throw new Error(
+          `Invalid image name or tag. Name: ${imageName} Tag: ${imageTag}`
+        );
+      }
+      const authCredentials = pullAuthCredentials
+        ? { pullAuthCredentials }
+        : {};
 
       return new Promise((resolve, reject) => {
         this.client.pull(
@@ -138,5 +164,143 @@ export class Image implements ImageClientInterface {
    */
   static shouldUpdateCurrentImage(oldSha: string, newSha: string): boolean {
     return !(newSha === oldSha);
+  }
+
+  /**
+   * Gets the name of the image without its tags. Useful to determine image name for an updated tag
+   *
+   * @param {string} name - Name of the image (with tag)
+   * @return {string|undefined}
+   */
+  getUntaggedImageName(name: string): string | undefined {
+    if (!name) {
+      return;
+    }
+    return name.split(':')[0];
+  }
+
+  /**
+   * Gets the tag of the image
+   *
+   * @param {string} name - Name of the image (with tag)
+   * @return {string|undefined}
+   */
+  getImageTag(name: string): string | undefined {
+    if (!name) {
+      return;
+    }
+    return name.split(':')[1];
+  }
+
+  /**
+   *
+   * @param {ImageInspectInfo} image - Image of the container
+   * @param {string|undefined} currentTag - Tag of the current image
+   * @param config
+   * @return {Promise<string | undefined>} - Most recent tag in the image repository according to user constraints
+   */
+  static async fetchUpdatedImageTag(
+    image: ImageInspectInfo,
+    currentTag: string | undefined,
+    config: ConfigInterface
+  ): Promise<string | undefined> {
+    // If semver update is not enabled, we default to <:latest> tag
+    if (!config.semverUpdate) {
+      return Promise.resolve(LATEST_TAG);
+    }
+
+    const repoName: string = Image.getRepositoryName(image);
+    if (!repoName) return;
+
+    // Initialize registry client and fetch image tags
+    const registryClient: RegistryInterface = new Registry(config);
+    const repoTags: string[] = await registryClient.getRepositoryTags(repoName);
+    if (!repoTags || !repoTags.length) return;
+
+    // filter valid tags - tags respecting semver conventions
+    const validTags: string[] = repoTags.filter((tag) =>
+      valid(coerce(clean(tag)))
+    );
+
+    if (!validTags.length) {
+      console.log(
+        chalk.yellow(
+          `No valid semver tags found for ${repoName}. Trying with 'latest' tag instead.`
+        )
+      );
+      logger.info(
+        `No valid semver tags found for ${repoName}. Trying with 'latest' tag instead.`
+      );
+      return Promise.resolve(LATEST_TAG);
+    }
+
+    if (config.patchOnly) {
+      return Image.getPatchUpdateTag(currentTag, validTags);
+    }
+    return Image.getMinorAndPatchUpdateTag(currentTag, validTags);
+  }
+
+  private static getRepositoryName(
+    image: ImageInspectInfo | undefined
+  ): string | undefined {
+    if (!image) return undefined;
+    const repoDigest: string = image.RepoDigests[0];
+    return repoDigest.split('@sha256:')[0];
+  }
+
+  private static getPatchUpdateTag(currentTag: string, tags: string[]): string {
+    if (!valid(currentTag)) {
+      return Image.findRecentUpdate(tags);
+    }
+    const tagsWithSameMajorMinorVersion: string[] = tags.filter(
+      (tag) =>
+        major(tag) === major(currentTag) && minor(tag) === minor(currentTag)
+    );
+
+    const comparator = function (tag1: string, tag2: string): number {
+      if (patch(tag1) < patch(tag2)) return 1;
+      if (patch(tag1) > patch(tag2)) return -1;
+      return 0;
+    };
+    tagsWithSameMajorMinorVersion.sort(comparator);
+
+    return tagsWithSameMajorMinorVersion[0];
+  }
+
+  private static getMinorAndPatchUpdateTag(
+    currentTag: string,
+    tags: string[]
+  ): string {
+    if (!valid(currentTag)) {
+      return Image.findRecentUpdate(tags);
+    }
+    const tagsWithSameMajorVersion: string[] = tags.filter(
+      (tag) => major(tag) === major(currentTag)
+    );
+
+    const comparator = function (tag1: string, tag2: string): number {
+      if (
+        minor(tag1) < minor(tag2) ||
+        (minor(tag1) === minor(tag2) && patch(tag1) < patch(tag2))
+      ) {
+        return 1;
+      }
+      if (
+        minor(tag1) > minor(tag2) ||
+        (minor(tag1) === minor(tag2) && patch(tag1) > patch(tag2))
+      ) {
+        return -1;
+      }
+      return 0;
+    };
+    tagsWithSameMajorVersion.sort(comparator);
+
+    return tagsWithSameMajorVersion[0];
+  }
+
+  private static findRecentUpdate(tags: string[]): string {
+    if (!tags.length) return LATEST_TAG;
+    const sortedTags: string[] = tags.sort(rcompare);
+    return sortedTags[0];
   }
 }

@@ -40,6 +40,8 @@ export interface CliArgumentsInterface {
   influxToken?: string | null;
   influxOrg?: string | null;
   influxBucket?: string | null;
+  semverUpdate?: boolean;
+  patchOnly?: boolean;
 }
 
 export interface ConfigInterface {
@@ -61,6 +63,8 @@ export interface ConfigInterface {
   telegramChatId?: string | undefined;
   prometheusConfig?: PromOptions;
   influxConfig?: InfluxOptions;
+  semverUpdate?: boolean;
+  patchOnly?: boolean;
   extractDockerConfig(): DockerInitOptions;
 }
 
@@ -77,10 +81,13 @@ export interface ImageClientInterface {
   listAll(): Promise<ImageInfo[] | undefined>;
   inspect(name: string): Promise<ImageInspectInfo | undefined>;
   pullLatestImage(
-    image: ImageInspectInfo,
-    pullAuthCredentials: PullAuthInterface | undefined
+    imageName: string,
+    imageTag: string,
+    config: ConfigInterface
   ): Promise<ImageInspectInfo | undefined>;
   remove(image: ImageInspectInfo): Promise<void>;
+  getUntaggedImageName(name: string): string | undefined;
+  getImageTag(name: string): string | undefined;
 }
 
 export interface ArgusClientInterface {
@@ -212,4 +219,13 @@ export interface InfluxInterface {
     monitoredContainers: Map<string, number>,
     updatedContainers: Map<string, number>
   ): void;
+}
+
+export interface RegistryInterface {
+  getRepositoryTags(repoName: string): Promise<string[] | undefined>;
+}
+export interface RegistryOpts {
+  registryBase: string | null;
+  repoUser?: string | null;
+  repoPass?: string | null;
 }

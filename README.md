@@ -300,7 +300,7 @@ docker run -d --name argus \
 argus --prometheus-host='http://127.0.0.1' --prometheus-port='8000'
 ```
 
-You can also easily set up a Grafana dashboard for said metrics captured which require miniamal changes to `promotheus.yml` config file on your system, and configuring your Grafana subdomain accordingly. **An importable Grafana dashboard template is coming soon.**
+You can also easily set up a Grafana dashboard for said metrics captured which require minimal changes to `promotheus.yml` config file on your system, and configuring your Grafana subdomain accordingly. **An importable Grafana dashboard template is coming soon.**
 
 ### InfluxDB metrics
 

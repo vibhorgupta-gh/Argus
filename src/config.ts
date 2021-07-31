@@ -27,6 +27,8 @@ export class Config implements ConfigInterface {
   telegramChatId?: string | undefined;
   prometheusConfig?: PromOptions;
   influxConfig?: InfluxOptions;
+  semverUpdate?: boolean;
+  patchOnly?: boolean;
 
   constructor({
     runonce,
@@ -55,6 +57,8 @@ export class Config implements ConfigInterface {
     influxToken,
     influxOrg,
     influxBucket,
+    semverUpdate,
+    patchOnly,
   }: CliArgumentsInterface) {
     const toMonitor: string[] | undefined = monitor
       ? parseContainersToFilterInput(monitor)
@@ -62,6 +66,8 @@ export class Config implements ConfigInterface {
     const toIgnore: string[] | undefined = ignore
       ? parseContainersToFilterInput(ignore)
       : [];
+    this.semverUpdate = semverUpdate;
+    this.patchOnly = patchOnly;
     this.runOnce = runonce;
     this.cleanImage = cleanup;
     this.dockerHost = host;

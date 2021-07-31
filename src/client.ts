@@ -10,7 +10,6 @@ import {
   ContainerClientInterface,
   ImageClientInterface,
   ArgusClientInterface,
-  PullAuthInterface,
   NotificationInterface,
   DataServiceInterface,
 } from './interfaces';
@@ -118,6 +117,23 @@ export class Client implements ArgusClientInterface {
             | undefined = await this.ImageClient.inspect(
             containerInspect.Config.Image
           );
+          const currentImageName:
+            | string
+            | undefined = this.ImageClient.getUntaggedImageName(
+            containerInspect.Config.Image
+          );
+          const currentImageTag:
+            | string
+            | undefined = this.ImageClient.getImageTag(
+            containerInspect.Config.Image
+          );
+          const updatedImageTag:
+            | string
+            | undefined = await Image.fetchUpdatedImageTag(
+            currentImage,
+            currentImageTag,
+            this.ClientConfig
+          );
           let latestImage: ImageInspectInfo | undefined;
 
           try {
@@ -127,32 +143,22 @@ export class Client implements ArgusClientInterface {
             );
             logger.debug('Pulling latest image from registry...');
 
-            let pullAuthCredentials: PullAuthInterface | undefined;
-            if (this.ClientConfig.repoUser && this.ClientConfig.repoPass) {
-              pullAuthCredentials = {
-                username: this.ClientConfig.repoUser,
-                password: this.ClientConfig.repoPass,
-              };
-            }
             latestImage = await this.ImageClient.pullLatestImage(
-              currentImage,
-              pullAuthCredentials
+              currentImageName,
+              updatedImageTag,
+              this.ClientConfig
             );
 
             // Old image cleanup commences if container runs on outdated image (and a newer image is obtained above)
             if (latestImage && this.ClientConfig.cleanImage) {
               console.log(
                 chalk.yellow(
-                  `Removing outdated image: ${JSON.stringify(
-                    currentImage.RepoTags
-                  )}`
+                  `Removing outdated image: ${JSON.stringify(currentImageName)}`
                 ),
                 `\n`
               );
               logger.debug(
-                `Removing outdated image: ${JSON.stringify(
-                  currentImage.RepoTags
-                )}`
+                `Removing outdated image: ${JSON.stringify(currentImageName)}`
               );
               this.ImageClient.remove(currentImage);
             }
@@ -164,7 +170,7 @@ export class Client implements ArgusClientInterface {
                 );
                 logger.info(
                   `Image cleanup inconsequential, current base image is the latest version: ${JSON.stringify(
-                    currentImage.RepoTags
+                    currentImageName
                   )}`
                 );
               }
