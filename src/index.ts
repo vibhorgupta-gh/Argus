@@ -186,6 +186,12 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     type: 'string',
     default: null,
   })
+  .option('private-registry', {
+    alias: 'reg',
+    description: 'Base URL to a private image registry.',
+    type: 'string',
+    default: 'registry-1.docker.io',
+  })
   .option('semver-update', {
     alias: 'sv',
     description: 'Allow updates according to semantically versioned images',
@@ -224,6 +230,12 @@ const ContainerClient: ContainerClientInterface = new Container(DockerClient);
 const ImageClient: ImageClientInterface = new Image(DockerClient);
 let NotificationClient: NotificationInterface | undefined;
 
+// Display figlet on console
+console.log(
+  chalk.red(figlet.textSync('Argus', { horizontalLayout: 'fitted' })),
+  `\n\n`
+);
+
 try {
   NotificationClient = new NotificationService(ClientConfig, DataClient);
 } catch (err) {
@@ -244,15 +256,11 @@ const Argus = new Client(
 
 // Run Argus
 (() => {
-  console.log(
-    chalk.red(figlet.textSync('Argus', { horizontalLayout: 'fitted' })),
-    `\n\n`
-  );
-
   if (!ClientConfig.runOnce) {
     setInterval(() => {
       Argus.execute();
     }, ClientConfig.watchInterval * 1000);
   }
+
   Argus.execute();
 })();

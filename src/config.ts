@@ -27,6 +27,7 @@ export class Config implements ConfigInterface {
   telegramChatId?: string | undefined;
   prometheusConfig?: PromOptions;
   influxConfig?: InfluxOptions;
+  privateRegistry?: string | undefined;
   semverUpdate?: boolean;
   patchOnly?: boolean;
 
@@ -57,6 +58,7 @@ export class Config implements ConfigInterface {
     influxToken,
     influxOrg,
     influxBucket,
+    privateRegistry,
     semverUpdate,
     patchOnly,
   }: CliArgumentsInterface) {
@@ -76,6 +78,7 @@ export class Config implements ConfigInterface {
     this.containersToIgnore = toIgnore;
     this.repoUser = user || process.env.REPO_USER;
     this.repoPass = pass || process.env.REPO_PASS;
+    this.privateRegistry = privateRegistry || process.env.PRIVATE_REGISTRY;
     this.emailConfig = {
       host: smtpHost || process.env.SMTP_HOST,
       port: Number(smtpPort || process.env.SMTP_PORT),

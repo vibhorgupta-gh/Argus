@@ -4,7 +4,9 @@
 
 ## Overview and Intent
 
-A TypeScript-based alternative to [watchtower](https://github.com/v2tec/watchtower)
+A TypeScript-based cousin of [watchtower](https://github.com/v2tec/watchtower), with support for **semantically versioned image tags**. Update your Docker container to the latest base image effortlessly.
+
+![Demo-GIF](https://imgur.com/a/x3vWkRo)
 
 **Argus automatically updates your running Docker containers to the latest available image.**
 The problem with managing docker images and containers manually, especially in an environment where containers are running across servers and need frequent updates due to constant images updates to the registry, is a series of CLI commands needed to update and rerun a container which quickly gets tiresome:
@@ -79,6 +81,9 @@ docker run --rm whaleit/argus --help
 - `--influx-token`, `-it`: Specify InfluxDB auth token for your organisation. Defaults to `null`.
 - `--influx-org`, `-io`: Specify InfluxDB organisation. Defaults to `null`.
 - `--influx-bucket`, `-ib`: Specify InfluxDB bucket for your organisation. Defaults to `null`.
+- `--private-registry`, `-reg`: Base URL to a private image registry. Defaults to `registry-1.docker.io`.
+- `--semver-update`, `-sv`: Allow updates according to semantically versioned images. Defaults to `true`.
+- `--patch-only`, `-po`: Only updates to latest patch release. Defaults to `false`.
 
 **Using related flags:**
 
@@ -88,6 +93,7 @@ docker run --rm whaleit/argus --help
 - `w`, `-tt` and `-tc` are to be used in conjunction in case of broadcasting notifications to Telegram.
 - `w`, `-ph` and `-pi` are to be used in conjunction in case of exporting data to Prometheus.
 - `-iu`, `-it`, `-io` and `-ib` are to be used in conjunction in case of writing data to InfluxDB
+- Value of `-po` will be ignored if semver updates are disabled (`--semver-update=false`)
 
 ---
 
@@ -215,25 +221,47 @@ argus --cleanup=true
 
 ### Private Registries
 
-If base images to running containers are stored in a secure registry that requires credentials, you can run Argus with 2 arguments `--user` and `--password`.
+If base images to running containers are stored in a secure registry that requires credentials, you can run Argus with arguments `--private-registry` and `--user` and `--password`.
 
 1. Running the docker image
 
 ```bash
 docker run -d --name argus \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  whaleit/argus --user='myUser' --password='myPassword'
+  whaleit/argus --user='myUser' --password='myPassword' --private-registry='some-registry.azure.io'
 ```
 
 2. Running the npm package
 
 ```bash
-argus --user='myUser' --password='myPassword'
+argus --user='myUser' --password='myPassword' --private-registry='some-registry.azure.io'
 ```
 
 Credentials can also be passed via environment variables. Set the environment vars in your command line environment prior to running Argus like so:
 
 ```bash
+export PRIVATE_REGISTRY=some-registry.azure.io
+export REPO_USER=myUser
+export REPO_PASS=myPassword
+```
+
+### Semantically Versioned Tags
+
+- Argus provides support for updating your images according to semver nomenclature of your tags. This is switched OFF by default, and can be enabled by `--semver-update=true`. If semver updates are disabled, Argus looks for `latest` tag.
+- When semver updates are enabled, By default the image will be updated to the most **recent minor or patch release**. If you want to update to only the patch releases, use `patch-only=true` (this is disabled by default).
+- For obvious reasons, major release updates are best left to human intervention!
+- Argus uses the Docker Registry API to determine the updated tags in the repository. If you are using a private registry, please specify the URL and credentials for the same.
+
+Credentials can be passed via CLI flags:
+
+```bash
+--user='myUser' --password='myPassword' --private-registry='some-registry.azure.io'
+```
+
+Credentials can also be passed via environment variables:
+
+```bash
+export PRIVATE_REGISTRY=some-registry.azure.io
 export REPO_USER=myUser
 export REPO_PASS=myPassword
 ```
@@ -365,4 +393,4 @@ Feel free to open issues for any bugs you discover or any feature ideas you have
 4. Push to your fork: `git push origin feature-branch`
 5. Open a Pull Request.
 
-If you like what you see, leave a star :)
+If you like what you see, do consider leaving a star :)

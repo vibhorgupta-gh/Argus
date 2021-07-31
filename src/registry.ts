@@ -10,7 +10,7 @@ export class Registry implements RegistryInterface {
 
   constructor(clientConfig: ConfigInterface) {
     this.registryConfig = {
-      registryBase: REGISTRY_BASE_V2,
+      registryBase: clientConfig.privateRegistry || REGISTRY_BASE_V2,
       repoUser: clientConfig.repoUser,
       repoPass: clientConfig.repoPass,
     };

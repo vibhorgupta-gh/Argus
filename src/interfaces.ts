@@ -40,6 +40,7 @@ export interface CliArgumentsInterface {
   influxToken?: string | null;
   influxOrg?: string | null;
   influxBucket?: string | null;
+  privateRegistry?: string | undefined;
   semverUpdate?: boolean;
   patchOnly?: boolean;
 }
@@ -63,6 +64,7 @@ export interface ConfigInterface {
   telegramChatId?: string | undefined;
   prometheusConfig?: PromOptions;
   influxConfig?: InfluxOptions;
+  privateRegistry?: string | undefined;
   semverUpdate?: boolean;
   patchOnly?: boolean;
   extractDockerConfig(): DockerInitOptions;
