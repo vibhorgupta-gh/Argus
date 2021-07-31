@@ -4,11 +4,11 @@
 
 ## Overview and Intent
 
-A TypeScript-based cousin of [watchtower](https://github.com/v2tec/watchtower), with support for **semantically versioned image tags**. Update your Docker container to the latest base image effortlessly.
+A TypeScript-based cousin of [watchtower](https://github.com/v2tec/watchtower), with support for **_semantically versioned image tags_**. Update your Docker container to the latest base image effortlessly.
 
-![Demo-GIF](https://imgur.com/a/x3vWkRo)
+![Demo-GIF](https://media.giphy.com/media/UkngTf9Y0kwKQnAMof/giphy.gif)
 
-**Argus automatically updates your running Docker containers to the latest available image.**
+**_Argus automatically updates your running Docker containers to the latest available image._**
 The problem with managing docker images and containers manually, especially in an environment where containers are running across servers and need frequent updates due to constant images updates to the registry, is a series of CLI commands needed to update and rerun a container which quickly gets tiresome:
 
 ```
