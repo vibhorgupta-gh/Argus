@@ -26,6 +26,25 @@ Automating the process of watching your containers, looking for latest images on
 
 ---
 
+## Capabilities
+
+- [x] Container base image updates
+- [x] Support for semantically versioned tags
+- [x] Support for antipattern tag nomenclature (tag names like `latest`)
+- [x] Email notifications
+- [x] Telegram notifications
+- [x] Slack notifications
+- [x] Discord notifications
+- [x] Pushover notifications
+- [x] Prometheus integration for metrics monitoring
+- [x] InfluxDB integration for metrics monitoring
+- [ ] Microsoft notifications
+- [ ] Support for Docker Swarm
+- [ ] Zero downtime deployments
+- [ ] Support for Deno (Make package Deno compatible)
+
+---
+
 ## Usage
 
 **NPM package**
