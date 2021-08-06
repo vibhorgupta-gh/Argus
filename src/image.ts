@@ -233,7 +233,9 @@ export class Image implements ImageClientInterface {
       );
       return Promise.resolve(LATEST_TAG);
     }
-
+    if (config.allowMajorUpdate) {
+      return Image.getMajorUpdateTag(currentTag, validTags);
+    }
     if (config.patchOnly) {
       return Image.getPatchUpdateTag(currentTag, validTags);
     }
@@ -246,6 +248,43 @@ export class Image implements ImageClientInterface {
     if (!image) return undefined;
     const repoDigest: string = image.RepoDigests[0];
     return repoDigest.split('@sha256:')[0];
+  }
+
+  private static getMajorUpdateTag(currentTag: string, tags: string[]): string {
+    if (!valid(currentTag)) {
+      return Image.findRecentUpdate(tags);
+    }
+    const tagsWithHigherMajorVersion: string[] = tags.filter(
+      (tag) => major(tag) > major(currentTag)
+    );
+
+    if (!tagsWithHigherMajorVersion.length) {
+      return Image.getMinorAndPatchUpdateTag(currentTag, tags);
+    }
+
+    const comparator = function (tag1: string, tag2: string): number {
+      if (major(tag1) < major(tag2)) return 1;
+      if (major(tag1) > major(tag2)) return -1;
+      if (major(tag1) === major(tag1)) {
+        if (minor(tag1) < minor(tag2)) return 1;
+        if (minor(tag1) > minor(tag2)) return -1;
+      }
+      if (major(tag1) === major(tag2) && minor(tag1) === minor(tag2)) {
+        if (patch(tag1) < patch(tag2)) return 1;
+        if (patch(tag1) > patch(tag2)) return -1;
+      }
+      if (
+        major(tag1) === major(tag2) &&
+        minor(tag1) === minor(tag2) &&
+        patch(tag1) === patch(tag2)
+      ) {
+        return 0;
+      }
+      return 0;
+    };
+    tagsWithHigherMajorVersion.sort(comparator);
+
+    return tagsWithHigherMajorVersion[0];
   }
 
   private static getPatchUpdateTag(currentTag: string, tags: string[]): string {

@@ -29,6 +29,7 @@ export class Config implements ConfigInterface {
   influxConfig?: InfluxOptions;
   privateRegistry?: string | undefined;
   semverUpdate?: boolean;
+  allowMajorUpdate?: boolean;
   patchOnly?: boolean;
 
   constructor({
@@ -60,6 +61,7 @@ export class Config implements ConfigInterface {
     influxBucket,
     privateRegistry,
     semverUpdate,
+    allowMajorUpdate,
     patchOnly,
   }: CliArgumentsInterface) {
     const toMonitor: string[] | undefined = monitor
@@ -69,6 +71,7 @@ export class Config implements ConfigInterface {
       ? parseContainersToFilterInput(ignore)
       : [];
     this.semverUpdate = semverUpdate;
+    this.allowMajorUpdate = allowMajorUpdate;
     this.patchOnly = patchOnly;
     this.runOnce = runonce;
     this.cleanImage = cleanup;
