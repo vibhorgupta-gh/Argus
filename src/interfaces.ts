@@ -42,8 +42,9 @@ export interface CliArgumentsInterface {
   influxBucket?: string | null;
   privateRegistry?: string | undefined;
   semverUpdate?: boolean;
-  allowMajorUpdate?: boolean;
-  patchOnly?: boolean;
+  allowMajorUpdates?: boolean;
+  allowPatchOnly?: boolean;
+  allowPrereleaseUpdates?: boolean;
 }
 
 export interface ConfigInterface {
@@ -67,8 +68,9 @@ export interface ConfigInterface {
   influxConfig?: InfluxOptions;
   privateRegistry?: string | undefined;
   semverUpdate?: boolean;
-  allowMajorUpdate?: boolean;
-  patchOnly?: boolean;
+  allowMajorUpdates?: boolean;
+  allowPatchOnly?: boolean;
+  allowPrereleaseUpdates?: boolean;
   extractDockerConfig(): DockerInitOptions;
 }
 

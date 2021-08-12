@@ -198,15 +198,21 @@ const argv: CliArgumentsInterface = yargs(process.argv.slice(2))
     type: 'boolean',
     default: false,
   })
-  .option('allow-major-update', {
+  .option('allow-major-updates', {
     alias: 'mu',
     description: 'Updates to the latest major release',
     type: 'boolean',
     default: false,
   })
-  .option('patch-only', {
+  .option('allow-patch-only', {
     alias: 'po',
     description: 'Only updates to latest patch release',
+    type: 'boolean',
+    default: false,
+  })
+  .option('allow-prerelease-updates', {
+    alias: 'pr',
+    description: 'Enables pre release updates if available',
     type: 'boolean',
     default: false,
   })

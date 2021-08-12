@@ -3,7 +3,16 @@ import {
   ImageInspectInfo,
   ImageInfo,
 } from 'dockerode';
-import { clean, coerce, valid, rcompare, major, minor, patch } from 'semver';
+import {
+  clean,
+  coerce,
+  valid,
+  rcompare,
+  major,
+  minor,
+  patch,
+  prerelease,
+} from 'semver';
 import {
   ImageClientInterface,
   ConfigInterface,
@@ -218,9 +227,16 @@ export class Image implements ImageClientInterface {
     if (!repoTags || !repoTags.length) return;
 
     // filter valid tags - tags respecting semver conventions
-    const validTags: string[] = repoTags.filter((tag) =>
-      valid(coerce(clean(tag)))
-    );
+    let comparator;
+    if (config.allowPrereleaseUpdates) {
+      comparator = (tag: string) =>
+        valid(clean(tag, { loose: true }), { loose: true });
+    } else {
+      comparator = (tag: string) =>
+        valid(coerce(clean(tag))) && !prerelease(clean(tag));
+    }
+    const validTags: string[] = repoTags.filter(comparator);
+    console.log(config.allowPrereleaseUpdates, validTags);
 
     if (!validTags.length) {
       console.log(
@@ -233,13 +249,21 @@ export class Image implements ImageClientInterface {
       );
       return Promise.resolve(LATEST_TAG);
     }
-    if (config.allowMajorUpdate) {
-      return Image.getMajorUpdateTag(currentTag, validTags);
+    if (config.allowMajorUpdates) {
+      return Image.getMajorUpdateTag(
+        currentTag,
+        validTags,
+        config.allowPrereleaseUpdates
+      );
     }
-    if (config.patchOnly) {
+    if (config.allowPatchOnly) {
       return Image.getPatchUpdateTag(currentTag, validTags);
     }
-    return Image.getMinorAndPatchUpdateTag(currentTag, validTags);
+    return Image.getMinorAndPatchUpdateTag(
+      currentTag,
+      validTags,
+      config.allowPrereleaseUpdates
+    );
   }
 
   private static getRepositoryName(
@@ -250,7 +274,11 @@ export class Image implements ImageClientInterface {
     return repoDigest.split('@sha256:')[0];
   }
 
-  private static getMajorUpdateTag(currentTag: string, tags: string[]): string {
+  private static getMajorUpdateTag(
+    currentTag: string,
+    tags: string[],
+    preReleasesAllowed = false
+  ): string {
     if (!valid(currentTag)) {
       return Image.findRecentUpdate(tags);
     }
@@ -259,7 +287,11 @@ export class Image implements ImageClientInterface {
     );
 
     if (!tagsWithHigherMajorVersion.length) {
-      return Image.getMinorAndPatchUpdateTag(currentTag, tags);
+      return Image.getMinorAndPatchUpdateTag(
+        currentTag,
+        tags,
+        preReleasesAllowed
+      );
     }
 
     const comparator = function (tag1: string, tag2: string): number {
@@ -278,7 +310,11 @@ export class Image implements ImageClientInterface {
         minor(tag1) === minor(tag2) &&
         patch(tag1) === patch(tag2)
       ) {
-        return 0;
+        if (!preReleasesAllowed) {
+          return 0;
+        }
+        if (prerelease(tag1) < prerelease(tag2)) return 1;
+        if (prerelease(tag1) > prerelease(tag2)) return -1;
       }
       return 0;
     };
@@ -308,7 +344,8 @@ export class Image implements ImageClientInterface {
 
   private static getMinorAndPatchUpdateTag(
     currentTag: string,
-    tags: string[]
+    tags: string[],
+    preReleasesAllowed = false
   ): string {
     if (!valid(currentTag)) {
       return Image.findRecentUpdate(tags);
@@ -329,6 +366,12 @@ export class Image implements ImageClientInterface {
         (minor(tag1) === minor(tag2) && patch(tag1) > patch(tag2))
       ) {
         return -1;
+      }
+      if (preReleasesAllowed) {
+        if (minor(tag1) === minor(tag2) && patch(tag1) === patch(tag2)) {
+          if (prerelease(tag1) < prerelease(tag2)) return 1;
+          if (prerelease(tag1) > prerelease(tag2)) return -1;
+        }
       }
       return 0;
     };

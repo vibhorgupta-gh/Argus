@@ -39,8 +39,8 @@ Automating the process of watching your containers, looking for latest images on
 - [x] Prometheus integration for metrics monitoring
 - [x] InfluxDB integration for metrics monitoring
 - [x] Updates for major release
+- [x] Support for unstable release updates
 - [ ] Microsoft teams notifications
-- [ ] Env dependent unstable release updates
 - [ ] Support for Docker Swarm
 - [ ] Zero downtime deployments
 - [ ] Support for Deno (Make package Deno compatible)
@@ -103,9 +103,10 @@ docker run --rm whaleit/argus --help
 - `--influx-org`, `-io`: Specify InfluxDB organisation. Defaults to `null`.
 - `--influx-bucket`, `-ib`: Specify InfluxDB bucket for your organisation. Defaults to `null`.
 - `--private-registry`, `-reg`: Base URL to a private image registry. Defaults to `registry-1.docker.io`.
-- `--semver-update`, `-sv`: Allow updates according to semantically versioned images. Defaults to `true`.
-- `--allow-major-update`, `-mu`: Updates to the latest major release. Defaults to `false`.
-- `--patch-only`, `-po`: Only updates to latest patch release. Defaults to `false`.
+- `--semver-update`, `-sv`: Allow updates according to semantically versioned images. Defaults to `false`.
+- `--allow-major-updates`, `-mu`: Updates to the latest major release. Defaults to `false`.
+- `--allow-patch-only`, `-po`: Only updates to latest patch release. Defaults to `false`.
+- `--allow-prerelease-updates`, `-pr`: Enables pre release updates if available. Defaults to `false`.
 
 **Using related flags:**
 
@@ -115,8 +116,8 @@ docker run --rm whaleit/argus --help
 - `w`, `-tt` and `-tc` are to be used in conjunction in case of broadcasting notifications to Telegram.
 - `w`, `-ph` and `-pi` are to be used in conjunction in case of exporting data to Prometheus.
 - `-iu`, `-it`, `-io` and `-ib` are to be used in conjunction in case of writing data to InfluxDB
-- Value of `-mu` and `-po` will be ignored if semver updates are disabled (`--semver-update=false`)
-- Precedence order if semver updates are enabled: `-mu` > `-pu` > default behaviour (update to latest minor/patch release, whichever update is posted last)
+- Value of `-mu`, `-pr` and `-po` will be ignored if semver updates are not enabled
+- Precedence order if semver updates are enabled: `-mu` > `-pr` > `-pu` > default behaviour (update to latest minor/patch release, whichever update is posted last)
 
 ---
 
@@ -272,8 +273,9 @@ export REPO_PASS=myPassword
 
 - Argus provides support for updating your images according to semver nomenclature of your tags. This is switched OFF by default, and can be enabled by `--semver-update=true`. If semver updates are disabled, Argus looks for `latest` tag.
 - When semver updates are enabled, By default the image will be updated to the most **recent minor or patch release**
-- If you want to update to only the patch releases, use `--patch-only=true` (this is disabled by default)
-- If you want to update to major releases, use `--allow-major-update=true` (this is disabled by default)
+- If you want to update to only the patch releases, use `--allow-patch-only=true` (disabled by default)
+- If you want to update to major releases, use `--allow-major-updates=true` (disabled by default)
+- If you want to update to the recent pre releases [so called unstable releases, eg. v1.0.0-alpha], use `--allow-prerelease-updates=true` (disabled by default)
 - Argus uses the Docker Registry API to determine the updated tags in the repository. If you are using a private registry, please specify the URL and credentials for the same.
 
 Credentials can be passed via CLI flags:

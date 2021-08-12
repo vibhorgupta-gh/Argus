@@ -29,8 +29,9 @@ export class Config implements ConfigInterface {
   influxConfig?: InfluxOptions;
   privateRegistry?: string | undefined;
   semverUpdate?: boolean;
-  allowMajorUpdate?: boolean;
-  patchOnly?: boolean;
+  allowMajorUpdates?: boolean;
+  allowPatchOnly?: boolean;
+  allowPrereleaseUpdates?: boolean;
 
   constructor({
     runonce,
@@ -61,8 +62,9 @@ export class Config implements ConfigInterface {
     influxBucket,
     privateRegistry,
     semverUpdate,
-    allowMajorUpdate,
-    patchOnly,
+    allowMajorUpdates,
+    allowPatchOnly,
+    allowPrereleaseUpdates,
   }: CliArgumentsInterface) {
     const toMonitor: string[] | undefined = monitor
       ? parseContainersToFilterInput(monitor)
@@ -71,8 +73,9 @@ export class Config implements ConfigInterface {
       ? parseContainersToFilterInput(ignore)
       : [];
     this.semverUpdate = semverUpdate;
-    this.allowMajorUpdate = allowMajorUpdate;
-    this.patchOnly = patchOnly;
+    this.allowMajorUpdates = allowMajorUpdates;
+    this.allowPatchOnly = allowPatchOnly;
+    this.allowPrereleaseUpdates = allowPrereleaseUpdates;
     this.runOnce = runonce;
     this.cleanImage = cleanup;
     this.dockerHost = host;
