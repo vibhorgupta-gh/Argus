@@ -4,8 +4,11 @@ version = 1
 name = "javascript"
 
   [analyzers.meta]
-  plugins = ["react"]
   environment = [
     "nodejs",
     "browser"
   ]
+  module_system = "es-modules"
+  dialect = "typescript"
+  skip_doc_coverage = ["class-expression", "method-definition"]
+  cyclomatic_complexity_threshold = "high"
