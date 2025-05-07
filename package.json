@@ -32,7 +32,7 @@
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
-    "@babel/preset-env": "^7.11.5",
+    "@babel/preset-env": "^7.27.1",
     "@influxdata/influxdb-client": "^1.14.0",
     "@snyk/docker-registry-v2-client": "^2.3.0",
     "@tsconfig/node12": "^1.0.7",
