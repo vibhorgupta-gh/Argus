@@ -54,7 +54,7 @@
     "figlet": "^1.5.0",
     "husky": "^4.3.0",
     "jest": "^26.4.2",
-    "lint-staged": "^10.4.0",
+    "lint-staged": "^16.0.0",
     "nodemailer": "^6.4.17",
     "nodemon": "^2.0.4",
     "prettier": "^2.1.2",
